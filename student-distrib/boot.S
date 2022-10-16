@@ -3,8 +3,8 @@
 
 #define ASM     1
 
-#include "multiboot.h"
-#include "x86_desc.h"
+# include "multiboot.h"
+# include "x86_desc.h"
 
 .text
 
@@ -25,7 +25,8 @@ _start:
 
 continue:
     # Load the GDT
-
+    lgdt       gdt_desc
+    
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
 

@@ -14,6 +14,9 @@
 
 .align 4
 
+gdt_desc:
+    .word gdt_bottom - gdt - 1
+    .long gdt
 
 tss_size:
     .long tss_bottom - tss - 1
