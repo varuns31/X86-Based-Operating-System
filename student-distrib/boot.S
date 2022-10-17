@@ -5,6 +5,7 @@
 
 # include "multiboot.h"
 # include "x86_desc.h"
+# include "init_idt.h"
 
 .text
 
@@ -25,7 +26,12 @@ _start:
 
 continue:
     # Load the GDT
-    lgdt       gdt_desc
+    lgdt       gdt_desc_ptr
+
+    lidt idt_desc_ptr
+    pushal
+    call initIdtFunc
+    popal
     
     # Load CS with the new descriptor value
     ljmp    $KERNEL_CS, $keep_going
