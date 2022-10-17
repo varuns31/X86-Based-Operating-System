@@ -5,6 +5,7 @@
 
 .globl keyboard_driver_linkage, rtc_driver_linkage
 
+# RTC assembly linkage
 rtc_driver_linkage: 
     pushal
     pushfl
@@ -13,6 +14,7 @@ rtc_driver_linkage:
     popal
     iret
 
+# RTC assembly linkage
 keyboard_driver_linkage:
     pushal
     pushfl
