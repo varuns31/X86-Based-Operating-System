@@ -4,6 +4,7 @@
 #ifndef ASM
 
 extern void keyboard_driver_linkage();
+extern void rtc_driver_linkage();
 
 #endif
 #endif
