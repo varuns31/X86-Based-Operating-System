@@ -10,13 +10,14 @@
 .globl gdt_desc, ldt_desc, tss_desc
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_ptr
-.globl idt_desc_ptr, idt
+.globl idt_desc_ptr, idt , gdt_desc_ptr
 
 .align 4
 
-gdt_desc:
+gdt_desc_ptr:
     .word gdt_bottom - gdt - 1
     .long gdt
+    .align 4
 
 tss_size:
     .long tss_bottom - tss - 1
@@ -99,7 +100,6 @@ ldt_bottom:
 idt_desc_ptr:
     .word idt_bottom - idt - 1
     .long idt
-
 
     .align  16
 idt:
