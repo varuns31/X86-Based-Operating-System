@@ -1,5 +1,61 @@
-## MP 3 ##
+ECE 391 MP3 Bug Log
 
--- Checkpoint 1 --
+Checkpoint 3.1
 
-#1 Shubham
+GDT not working:
+- Symptom: gdt not working after writing code for GDT and IDT, boot loop
+- Difficulty: hard, 4-5 hours
+- Solution: created a new gdt_desc pointer instead of using the originally defined
+gdt_desc that was originally declared somewhere else
+
+IDT writing:
+- Symptom: IDT was not working, compiler error
+- Difficulty: not hard, 30 mins
+- Solution: the second parameter of SET_IDT should not have parentheses, 
+because it is just a string
+
+IDT:
+- Symptom: IDT was not working, boot loop on exception call
+- Difficulty: 2-3 hours
+- Solution: set present to 0 for values greater than 20, 1 for < 20 because
+that is the correct exception. Set everything to interrupt gate and ignored 
+reserve4 value
+
+Paging:
+- Symptom: pg disabled
+- Difficulty: 2-3 hours
+- Solution: cr4 needs to be initialized before enabling paging in cr0
+
+Paging kernel memory:
+- Symptom: Incorrect kernel mem location, going into boot loop
+- Difficulty: 1-2 hours
+- Solution: kernel memory location is at 4MB = 1024 * 1024 * 4, should 
+be shifted by 12 bits before putting into PDE
+
+Keyboard:
+- Symptom: When testing keyboard, key up also registered, causing doubele press
+- Difficulty: 1-2 hours
+- Solution: checked whether scancode within bounds, masking key up scancodes
+
+Keyboard (General Bug):
+- Symptom: globally defined variable i was not being updated, causing us to think
+keyboard is not being pressed > once
+- Difficulty: medium, 45 minutes
+- Solution: named variable differently becuase i value re-initialized
+
+PIC:
+- Symptom: RTC was not wokring properly, not cycling correctly
+- Difficulty: hard, 4-5 hours
+- Solution: We did not initialize master PIC in the case when slave was being
+serviced, added the condition.
+
+RTC:
+- Symptom: RTC compiling but test_interrupts not working
+- Difficulty: medium, 2-3 hours
+- Solution: We messed up the ordering of arguments in outb, 
+different from OSDEV
+
+RTC:
+- Symptom: RTC compiling but test_interrupts not working
+- Difficulty: easy, 45 minute
+- Solution: Used the wrong port, 0x0C instead of 0x8C
