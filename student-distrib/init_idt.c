@@ -193,7 +193,7 @@ void GeneralProtectionFault() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void PageFault() {
-    clear();
+    //clear();
     printf(" Page Fault");
     while(1){}
 }

@@ -28,10 +28,7 @@ continue:
     # Load the GDT
     lgdt       gdt_desc_ptr
 
-    
-    pushal
-    call initIdtFunc
-    popal
+
 
     lidt idt_desc_ptr
     
