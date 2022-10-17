@@ -45,6 +45,15 @@ int idt_test() {
 	return result;
 }
 
+/* Divide by Zero test
+ * 
+ * Asserts that exception is triggered in IDT and executed properly
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: IDT divide by zero exception
+ * Files: init_idt.c
+ */
 int idt_exception_divide_by_zero() {
 	TEST_HEADER;
 	int a = 1;
@@ -53,6 +62,15 @@ int idt_exception_divide_by_zero() {
 	return c;
 }
 
+/* Page Fault Test
+ * 
+ * Asserts that page fault works - boundaries of the pages
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: Load Pages/ Validation of pages
+ * Files: paging.c/h, enable_paging.S
+ */
 int page_test() {
 	int result = PASS;
 
@@ -65,9 +83,6 @@ int page_test() {
 	// testval = (int *)0x800001;
 	*testval = 5;
 	return result;
-
-
-
 }
 
 /* Checkpoint 2 tests */
