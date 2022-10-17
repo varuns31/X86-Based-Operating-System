@@ -31,6 +31,7 @@ void i8259_init(void) {
     // push cached values
     outb(master_mask, MASTER_8259_PORT + 0x01);
     outb(slave_mask, SLAVE_8259_PORT + 0x01);
+    enable_irq(2);
 
     return;
 }
