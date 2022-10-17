@@ -1,6 +1,7 @@
 #include "x86_desc.h"
 #include "lib.h"
 #include "init_idt.h"
+#include "driver_linkage.h"
 
 void initIdtFunc();
 
@@ -143,28 +144,29 @@ void initIdtFunc()
         idt[i].dpl = 0x0;
         idt[i].present = 0;
         if (i == 128) idt[i].dpl = 0x3;
-        if (i <= 21) idt[i].present = 1;
+        if (i <= 21 || i == 33) idt[i].present = 1;
     }
 
-    SET_IDT_ENTRY(idt[0],divideerror);
-    SET_IDT_ENTRY(idt[1],singleStepInterrupt);
-    SET_IDT_ENTRY(idt[2],nmi);
-    SET_IDT_ENTRY(idt[3],breakpoint);
-    SET_IDT_ENTRY(idt[4],overflow);
-    SET_IDT_ENTRY(idt[5],bound_range);
-    SET_IDT_ENTRY(idt[6],invalidopcode);
-    SET_IDT_ENTRY(idt[7],CoprocessorNotAvailable);
-    SET_IDT_ENTRY(idt[8],DoubleFault);
-    SET_IDT_ENTRY(idt[9],CoprocessorSegmentOverrun);
-    SET_IDT_ENTRY(idt[10],InvalidTaskStateSegment);
-    SET_IDT_ENTRY(idt[11],Segmentnotpresent);
-    SET_IDT_ENTRY(idt[12],StackSegmentFault);
-    SET_IDT_ENTRY(idt[13],GeneralProtectionFault);
-    SET_IDT_ENTRY(idt[14],PageFault);
-    SET_IDT_ENTRY(idt[16],x87FloatingPointException);
-    SET_IDT_ENTRY(idt[17],AlignmentCheck);
-    SET_IDT_ENTRY(idt[18],MachineCheck);
-    SET_IDT_ENTRY(idt[19],SIMDFloatingPointException);
-    SET_IDT_ENTRY(idt[20],VirtualizationException);
-    SET_IDT_ENTRY(idt[21],ControlProtectionException);
+    SET_IDT_ENTRY(idt[0], divideerror);
+    SET_IDT_ENTRY(idt[1], singleStepInterrupt);
+    SET_IDT_ENTRY(idt[2], nmi);
+    SET_IDT_ENTRY(idt[3], breakpoint);
+    SET_IDT_ENTRY(idt[4], overflow);
+    SET_IDT_ENTRY(idt[5], bound_range);
+    SET_IDT_ENTRY(idt[6], invalidopcode);
+    SET_IDT_ENTRY(idt[7], CoprocessorNotAvailable);
+    SET_IDT_ENTRY(idt[8], DoubleFault);
+    SET_IDT_ENTRY(idt[9], CoprocessorSegmentOverrun);
+    SET_IDT_ENTRY(idt[10], InvalidTaskStateSegment);
+    SET_IDT_ENTRY(idt[11], Segmentnotpresent);
+    SET_IDT_ENTRY(idt[12], StackSegmentFault);
+    SET_IDT_ENTRY(idt[13], GeneralProtectionFault);
+    SET_IDT_ENTRY(idt[14], PageFault);
+    SET_IDT_ENTRY(idt[16], x87FloatingPointException);
+    SET_IDT_ENTRY(idt[17], AlignmentCheck);
+    SET_IDT_ENTRY(idt[18], MachineCheck);
+    SET_IDT_ENTRY(idt[19], SIMDFloatingPointException);
+    SET_IDT_ENTRY(idt[20], VirtualizationException);
+    SET_IDT_ENTRY(idt[21], ControlProtectionException);
+    SET_IDT_ENTRY(idt[33], keyboard_driver_linkage);
 }
