@@ -11,7 +11,7 @@
 #define TEST_OUTPUT(name, result)	\
 	printf("[TEST %s] Result = %s\n", name, (result) ? "PASS" : "FAIL");
 
-static inline void assertion_failure(){
+static inline void assertion_failure() {
 	/* Use exception #15 for assertions, otherwise
 	   reserved by Intel */
 	asm volatile("int $15");
@@ -29,23 +29,29 @@ static inline void assertion_failure(){
  * Coverage: Load IDT, IDT definition
  * Files: x86_desc.h/S
  */
-int idt_test(){
+int idt_test() {
 	TEST_HEADER;
 
 	int i;
 	int result = PASS;
-	// for (i = 0; i < 10; ++i){
-	// 	if ((idt[i].offset_15_00 == NULL) && 
-	// 		(idt[i].offset_31_16 == NULL)){
-	// 		assertion_failure();
-	// 		result = FAIL;
-	// 	}
-	// }
+	for (i = 0; i < 10; ++i){
+		if ((idt[i].offset_15_00 == NULL) && 
+			(idt[i].offset_31_16 == NULL)){
+			assertion_failure();
+			result = FAIL;
+		}
+	}
 
 	return result;
 }
 
-// add more tests here
+int idt_exception_divide_by_zero() {
+	TEST_HEADER;
+	int a = 1;
+	int b = 0;
+	int c = a/b;
+	return c;
+}
 
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
@@ -54,7 +60,7 @@ int idt_test(){
 
 
 /* Test suite entry point */
-void launch_tests(){
-	TEST_OUTPUT("idt_test", idt_test());
-	// launch your tests here
+void launch_tests() {
+	// TEST_OUTPUT("idt_test", idt_test());
+	// TEST_OUTPUT("idt_exception_divide_by_zero", idt_exception_divide_by_zero());
 }
