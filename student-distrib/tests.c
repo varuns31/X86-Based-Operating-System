@@ -1,5 +1,6 @@
 #include "tests.h"
 #include "x86_desc.h"
+#include "lib.c"
 #include "lib.h"
 
 #define PASS 1
@@ -53,6 +54,16 @@ int idt_exception_divide_by_zero() {
 	return c;
 }
 
+int test_rtc() {
+	TEST_HEADER;
+	
+	while(1) {
+		test_interrupts();
+	}
+
+	return PASS;
+}
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -63,4 +74,5 @@ int idt_exception_divide_by_zero() {
 void launch_tests() {
 	// TEST_OUTPUT("idt_test", idt_test());
 	// TEST_OUTPUT("idt_exception_divide_by_zero", idt_exception_divide_by_zero());
+	TEST_OUTPUT("test_rtc", test_rtc());
 }

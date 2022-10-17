@@ -9,6 +9,7 @@
 #include "debug.h"
 #include "tests.h"
 #include "keyboard.h"
+#include "rtc.h"
 
 #define RUN_TESTS
 
@@ -144,7 +145,8 @@ void entry(unsigned long magic, unsigned long addr) {
      * PIC, any other initialization stuff... 
     */
     keyboard_handler_init();
-    
+    rtc_handler_init();
+
     /* Enable interrupts */
     sti();
     
@@ -156,7 +158,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 #ifdef RUN_TESTS
     /* Run tests */
-    // launch_tests();
+    launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
 
