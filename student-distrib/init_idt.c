@@ -24,6 +24,11 @@ void breakpoint(){
     printf("there is a breakpoint error");
     while(1){}
 }
+void overflow(){
+    clear();
+    printf("Overflow error");
+    while(1){}
+}
 void bound_range(){
     clear();
     printf("Bound Range Exceeded");
@@ -130,34 +135,36 @@ void initIdtFunc()
     int i;
     for(i=0; i<NUM_VEC; i++){
         idt[i].seg_selector = KERNEL_CS;
-        idt[i].reserved3 = 0;
+        idt[i].reserved3 = 1;
         idt[i].reserved2 = 1;
         idt[i].reserved1 = 1;
         idt[i].size = 1;
+        idt[i].reserved0 = 0;
         if(i == 128) idt[i].dpl = 0x3;
         idt[i].dpl = 0;
-        if(i < 20 || i == 128) idt[i].present = 1;
-        else idt[i].present =0;
+        if(i < 20) idt[i].present = 0;
+        else idt[i].present =1;
     }
 
     SET_IDT_ENTRY(idt[0],divideerror);
     SET_IDT_ENTRY(idt[1],singleStepInterrupt);
     SET_IDT_ENTRY(idt[2],nmi);
     SET_IDT_ENTRY(idt[3],breakpoint);
-    SET_IDT_ENTRY(idt[4],bound_range);
-    SET_IDT_ENTRY(idt[5],invalidopcode);
-    SET_IDT_ENTRY(idt[6],CoprocessorNotAvailable);
-    SET_IDT_ENTRY(idt[7],DoubleFault);
-    SET_IDT_ENTRY(idt[8],CoprocessorSegmentOverrun);
-    SET_IDT_ENTRY(idt[9],InvalidTaskStateSegment);
-    SET_IDT_ENTRY(idt[10],Segmentnotpresent);
-    SET_IDT_ENTRY(idt[11],StackSegmentFault);
-    SET_IDT_ENTRY(idt[12],GeneralProtectionFault);
-    SET_IDT_ENTRY(idt[13],PageFault);
-    SET_IDT_ENTRY(idt[14],x87FloatingPointException);
-    SET_IDT_ENTRY(idt[16],AlignmentCheck);
-    SET_IDT_ENTRY(idt[17],MachineCheck);
-    SET_IDT_ENTRY(idt[18],SIMDFloatingPointException);
-    SET_IDT_ENTRY(idt[19],VirtualizationException);
-    SET_IDT_ENTRY(idt[20],ControlProtectionException);
+    SET_IDT_ENTRY(idt[4],overflow);
+    SET_IDT_ENTRY(idt[5],bound_range);
+    SET_IDT_ENTRY(idt[6],invalidopcode);
+    SET_IDT_ENTRY(idt[7],CoprocessorNotAvailable);
+    SET_IDT_ENTRY(idt[8],DoubleFault);
+    SET_IDT_ENTRY(idt[9],CoprocessorSegmentOverrun);
+    SET_IDT_ENTRY(idt[10],InvalidTaskStateSegment);
+    SET_IDT_ENTRY(idt[11],Segmentnotpresent);
+    SET_IDT_ENTRY(idt[12],StackSegmentFault);
+    SET_IDT_ENTRY(idt[13],GeneralProtectionFault);
+    SET_IDT_ENTRY(idt[14],PageFault);
+    SET_IDT_ENTRY(idt[16],x87FloatingPointException);
+    SET_IDT_ENTRY(idt[17],AlignmentCheck);
+    SET_IDT_ENTRY(idt[18],MachineCheck);
+    SET_IDT_ENTRY(idt[19],SIMDFloatingPointException);
+    SET_IDT_ENTRY(idt[20],VirtualizationException);
+    SET_IDT_ENTRY(idt[21],ControlProtectionException);
 }
