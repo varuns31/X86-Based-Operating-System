@@ -24,7 +24,7 @@ void keyboard_handler_init() {
     // enable interrupts
     enable_irq(IRQ_LINE_KEYBOARD);
     // clear the screen
-    clear();
+    // clear();
     return; 
 }
 

@@ -90,7 +90,7 @@ void GeneralProtectionFault() {
 }
 
 void PageFault() {
-    clear();
+    //clear();
     printf(" Page Fault");
     while(1){}
 }

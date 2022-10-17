@@ -53,6 +53,23 @@ int idt_exception_divide_by_zero() {
 	return c;
 }
 
+int page_test() {
+	int result = PASS;
+
+	int *testval;
+
+	//testval = (int *)0xb7000;
+	//testval = (int *)0xb8001;
+	///testval = (int *)0x3FFFFF;
+	//testval = (int *)0x400001;
+	// testval = (int *)0x800001;
+	*testval = 5;
+	return result;
+
+
+
+}
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -63,4 +80,5 @@ int idt_exception_divide_by_zero() {
 void launch_tests() {
 	// TEST_OUTPUT("idt_test", idt_test());
 	// TEST_OUTPUT("idt_exception_divide_by_zero", idt_exception_divide_by_zero());
+	TEST_OUTPUT("PF Test", page_test());
 }

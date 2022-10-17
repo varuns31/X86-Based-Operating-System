@@ -14,6 +14,7 @@
 
 #define RUN_TESTS
 
+void initIdtFunc();
 extern void paging_init();
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
@@ -140,9 +141,15 @@ void entry(unsigned long magic, unsigned long addr) {
         ltr(KERNEL_TSS);
     }
 
+    /* Init the IDT */
+    initIdtFunc();
+    
     /* Init the PIC */
     i8259_init();
+
+    /* Init the Paging */
     paging_init();
+    
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... 
     */
