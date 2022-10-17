@@ -3,9 +3,9 @@
 
 .text
 
-.globl keyboard_driver_assembly
+.globl keyboard_driver_linkage
 
-# rtc_driver_assembly: 
+# rtc_driver_linkage: 
 #     pushal
 #     pushfl
 #     call rtc_handler
@@ -13,7 +13,7 @@
 #     popal
 #     iret
 
-keyboard_driver_assembly:
+keyboard_driver_linkage:
     pushal
     pushfl
     call keyboard_handler

@@ -3,7 +3,7 @@
 
 #ifndef ASM
 
-extern void keyboard_driver_assembly();
+extern void keyboard_driver_linkage();
 
 #endif
 #endif

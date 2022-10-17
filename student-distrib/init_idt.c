@@ -168,5 +168,5 @@ void initIdtFunc()
     SET_IDT_ENTRY(idt[19], SIMDFloatingPointException);
     SET_IDT_ENTRY(idt[20], VirtualizationException);
     SET_IDT_ENTRY(idt[21], ControlProtectionException);
-    SET_IDT_ENTRY(idt[33], keyboard_driver_assembly);
+    SET_IDT_ENTRY(idt[33], keyboard_driver_linkage);
 }
