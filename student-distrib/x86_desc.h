@@ -201,11 +201,11 @@ do {                                    \
     );                                  \
 } while (0)
 
-// /* Load the interrupt descriptor table (IDT).  This macro takes a 32-bit
-//  * address which points to a 6-byte structure.  The 6-byte structure
-//  * (defined as "struct x86_desc" above) contains a 2-byte size field
-//  * specifying the size of the IDT, and a 4-byte address field specifying
-//  * the base address of the IDT. */
+/* Load the interrupt descriptor table (IDT).  This macro takes a 32-bit
+ * address which points to a 6-byte structure.  The 6-byte structure
+ * (defined as "struct x86_desc" above) contains a 2-byte size field
+ * specifying the size of the IDT, and a 4-byte address field specifying
+ * the base address of the IDT. */
 // #define lgdt(desc)                      \
 // do {                                    \
 //     asm volatile ("lgdt (%0)"           \
