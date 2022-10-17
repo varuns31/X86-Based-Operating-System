@@ -1,8 +1,4 @@
-; .text
-; .globl enablePaging
-; .globl loadPageDirectory
-
-
+# set the page directory pointer inside cr3
 
 .text
 .globl loadPageDirectory
@@ -14,6 +10,8 @@ loadPageDirectory:
     mov %ebp, %esp
     pop %ebp
     ret
+
+# enable paging by appropriately seting cr4 and cr0
 
 .text
 .globl enablePaging
