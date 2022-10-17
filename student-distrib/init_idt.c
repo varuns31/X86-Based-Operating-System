@@ -144,7 +144,7 @@ void initIdtFunc()
         idt[i].dpl = 0x0;
         idt[i].present = 0;
         if (i == 128) idt[i].dpl = 0x3;
-        if (i <= 21 || i == 33) idt[i].present = 1;
+        if (i <= 21 || i == 33 || i == 40) idt[i].present = 1;
     }
 
     SET_IDT_ENTRY(idt[0], divideerror);
@@ -169,4 +169,5 @@ void initIdtFunc()
     SET_IDT_ENTRY(idt[20], VirtualizationException);
     SET_IDT_ENTRY(idt[21], ControlProtectionException);
     SET_IDT_ENTRY(idt[33], keyboard_driver_linkage);
+    SET_IDT_ENTRY(idt[40], rtc_driver_linkage);
 }

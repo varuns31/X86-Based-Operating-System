@@ -3,15 +3,15 @@
 
 .text
 
-.globl keyboard_driver_linkage
+.globl keyboard_driver_linkage, rtc_driver_linkage
 
-# rtc_driver_linkage: 
-#     pushal
-#     pushfl
-#     call rtc_handler
-#     popfl
-#     popal
-#     iret
+rtc_driver_linkage: 
+    pushal
+    pushfl
+    call rtc_handler
+    popfl
+    popal
+    iret
 
 keyboard_driver_linkage:
     pushal
