@@ -2,6 +2,7 @@
 #include "lib.h"
 #include "init_idt.h"
 
+void initIdtFunc();
 
 void divideerror(){
     clear();
@@ -135,7 +136,8 @@ void initIdtFunc()
         idt[i].size = 1;
         if(i == 128) idt[i].dpl = 0x3;
         idt[i].dpl = 0;
-        if(i < 20) idt[i].present = 1;
+        if(i < 20 || i == 128) idt[i].present = 1;
+        else idt[i].present =0;
     }
 
     SET_IDT_ENTRY(idt[0],divideerror);

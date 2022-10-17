@@ -206,14 +206,14 @@ do {                                    \
  * (defined as "struct x86_desc" above) contains a 2-byte size field
  * specifying the size of the IDT, and a 4-byte address field specifying
  * the base address of the IDT. */
-// #define lgdt(desc)                      \
-// do {                                    \
-//     asm volatile ("lgdt (%0)"           \
-//             :                           \
-//             : "g" (desc)                \
-//             : "memory"                  \
-//     );                                  \
-// } while (0) // try using m insted of g
+#define lgdt(desc)                      \
+do {                                    \
+    asm volatile ("lgdt (%0)"           \
+            :                           \
+            : "g" (desc)                \
+            : "memory"                  \
+    );                                  \
+} while (0) // try using m insted of g
 
 /* Load the local descriptor table (LDT) register.  This macro takes a
  * 16-bit index into the GDT, which points to the LDT entry.  x86 then
