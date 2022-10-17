@@ -1,5 +1,6 @@
 #include "x86_desc.h"
 #include "lib.h"
+#include "init_idt.h"
 
 
 void divideerror(){
