@@ -14,6 +14,7 @@
 
 .align 4
 
+#gdt size, location added to gdt ptr
 gdt_desc_ptr:
     .word gdt_bottom - gdt - 1
     .long gdt
