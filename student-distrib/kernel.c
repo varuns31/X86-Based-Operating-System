@@ -153,6 +153,7 @@ void entry(unsigned long magic, unsigned long addr) {
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... 
     */
+    clear();
     keyboard_handler_init();
     rtc_handler_init();
 
