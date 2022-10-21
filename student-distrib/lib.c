@@ -6,11 +6,24 @@
 #define VIDEO       0xB8000
 #define NUM_COLS    80
 #define NUM_ROWS    25
-#define ATTRIB      0x7
+#define ATTRIB      0x2
 
 static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
+
+void set_screen(int x, int y) {
+    screen_x = x;
+    screen_y = y;
+}
+
+int get_screen_x() {
+    return screen_x;
+}
+
+int get_screen_y() {
+    return screen_y;
+}
 
 /* void clear(void);
  * Inputs: void
@@ -170,6 +183,7 @@ int32_t puts(int8_t* s) {
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
         screen_y++;
+        if(screen_y >= NUM_ROWS) screen_y = 0;
         screen_x = 0;
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;

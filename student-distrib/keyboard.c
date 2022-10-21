@@ -114,24 +114,46 @@ void keyboard_handler() {
 
     if(key_tracker.ctrl && scan_code == 38) {
         clear();
+        set_screen(0, 0);
+        send_eoi(IRQ_LINE_KEYBOARD);
+        return; 
+    }
+
+    if(scan_code == 14) {
+        int x = get_screen_x();
+        int y = get_screen_y();
+        int linear = y * 80 + x;
+        linear--;
+        
+        if(linear < 0) {
+            send_eoi(IRQ_LINE_KEYBOARD);
+            return;  
+        }
+
+        set_screen(linear % 80, linear / 80);
+        putc(' ');
+        x = get_screen_x();
+        y = get_screen_y();
+        linear = y * 80 + x;
+        linear--;
+        set_screen(linear % 80, linear / 80);
         send_eoi(IRQ_LINE_KEYBOARD);
         return;
     }
-    if(scan_code==28)
-    {
+
+    if(scan_code == 28) {
         cur_line_counter++;
     }
 
     char to_print;
-    int caps_idx=key_tracker.shift ^ key_tracker.caps_lock;
-    if(!is_alpha(scan_code))caps_idx=key_tracker.shift;
-    to_print=key_map[caps_idx][scan_code];
+    int caps_idx = key_tracker.shift ^ key_tracker.caps_lock;
+    if(!is_alpha(scan_code)) caps_idx = key_tracker.shift;
+    to_print = key_map[caps_idx][scan_code];
 
-    if(cur_line_counter >= 25)
-    {
-        clear();
-        cur_line_counter = 0;
-    }
+    // if(cur_line_counter >= 25) {
+    //     clear();
+    //     cur_line_counter = 0;
+    // }
     // write character to the screen
     putc(to_print);
 
