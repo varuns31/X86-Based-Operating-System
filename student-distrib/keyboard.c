@@ -34,7 +34,9 @@ typedef struct keyboard_buffer{
 struct keyboard_buffer onscreen_buff[25]; 
 int buf_length;
 
-int cur_line_counter = 1;
+int screen_filled=0;
+int cur_line_counter = 0;
+char lines[25][128];
 
 int is_alpha(int scan_code);
 
@@ -68,8 +70,7 @@ void keyboard_handler_init() {
     int i=0;
     for(i=0;i<25;i++)
     {
-        char init_line[128];
-        onscreen_buff[i].line=init_line;
+        onscreen_buff[i].line=lines[i];
         onscreen_buff[i].length=0;
     }
  
@@ -131,28 +132,59 @@ void keyboard_handler() {
     if(key_tracker.ctrl && scan_code == 38) {
         clear();
         set_screen(0, 0);
+        cur_line_counter=0;
+        buf_length=0;
+        screen_filled=0;
         send_eoi(IRQ_LINE_KEYBOARD);
         return; 
     }
 
-    if(scan_code == 14) {
+    // if(scan_code == 14) {
+    //     int x = get_screen_x();
+    //     int y = get_screen_y();
+    //     int linear = y * 80 + x;
+    //     linear--;
+        
+    //     if(linear < 0) {
+    //         send_eoi(IRQ_LINE_KEYBOARD);
+    //         return;  
+    //     }
+
+    //     if(onscreen_buff[buf_length].length>80)set_screen(linear % 80, linear / 80);
+    //     else
+    //     {
+    //         if(x<=0)
+    //         {
+    //             send_eoi(IRQ_LINE_KEYBOARD);
+    //             return;
+    //         }
+    //         set_screen(x-1,y);
+    //     }
+    //     putc(' ');
+    //     x = get_screen_x();
+    //     y = get_screen_y();
+    //     linear = y * 80 + x;
+    //     linear--;
+    //     set_screen(linear % 80, linear / 80);
+    //     onscreen_buff[buf_length].length--;
+    //     send_eoi(IRQ_LINE_KEYBOARD);
+    //     return;
+    // }
+      if(scan_code == 14) {
         int x = get_screen_x();
         int y = get_screen_y();
         int linear = y * 80 + x;
         linear--;
         
-        if(linear < 0) {
+        if(linear < 0 || (((linear+1) % 80) ==0 && onscreen_buff[buf_length].length<80)) {
             send_eoi(IRQ_LINE_KEYBOARD);
             return;  
         }
 
         set_screen(linear % 80, linear / 80);
         putc(' ');
-        x = get_screen_x();
-        y = get_screen_y();
-        linear = y * 80 + x;
-        linear--;
         set_screen(linear % 80, linear / 80);
+        onscreen_buff[buf_length].length--;
         send_eoi(IRQ_LINE_KEYBOARD);
         return;
     }
@@ -173,17 +205,29 @@ void keyboard_handler() {
         cur_line_counter++;
     }
 
-    if(cur_line_counter >= 25) {
+    if(cur_line_counter >= 25 || (screen_filled==1 && scan_code==28)) {
+        int x=get_screen_x;
+        int y=get_screen_y;
+         clear();
+        set_screen(0, 0);
+        // int a,b;
         cur_line_counter = 0;
-         // for(a=0;a<onscreen_buff.length();a++)
+        // screen_filled=1;
+        // for(b=1;b<buf_length;b++)
         // {
-        //     onscreen_buff[a].line=onscreen_buff[a+1].line;
-        //     for(b=0;b<onscreen_buff[a+1].length;b++)
+        //     if(b==1)continue;
+        //     onscreen_buff[b-1].length=onscreen_buff[b].length;
+        //     for(a=0;a<onscreen_buff[b].length;a++)
         //     {
-        //         putc(onscreen_buff[a+1].line[b]);
+        //         //if(a==80)putc('\n');
+        //         putc(onscreen_buff[b].line[a]);
+        //         onscreen_buff[b-1].line[a]=onscreen_buff[b].line[a];
         //     }
         // }
-        buf_length=0;
+        // onscreen_buff[buf_length-1].length=0;
+         buf_length=0;
+        // putc('\n');
+        // set_screen(0,24);
     }
     // write character to the screen
      if(onscreen_buff[buf_length].length<128)
