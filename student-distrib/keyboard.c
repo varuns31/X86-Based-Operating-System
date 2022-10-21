@@ -26,6 +26,14 @@ struct keyboard_mapper {
     int alt;
 } key_tracker;
 
+typedef struct keyboard_buffer{
+    char *line;
+    int length;
+};
+
+struct keyboard_buffer onscreen_buff[25]; 
+int buf_length;
+
 int cur_line_counter = 1;
 
 int is_alpha(int scan_code);
@@ -56,7 +64,15 @@ void keyboard_handler_init() {
     key_tracker.shift = 0;
     key_tracker.ctrl = 0;
     key_tracker.alt = 0;
-    
+    buf_length=0;
+    int i=0;
+    for(i=0;i<25;i++)
+    {
+        char init_line[128];
+        onscreen_buff[i].line=init_line;
+        onscreen_buff[i].length=0;
+    }
+ 
     return; 
 }
 
@@ -143,6 +159,7 @@ void keyboard_handler() {
 
     if(scan_code == 28) {
         cur_line_counter++;
+        buf_length++;
     }
 
     char to_print;
@@ -150,13 +167,33 @@ void keyboard_handler() {
     if(!is_alpha(scan_code)) caps_idx = key_tracker.shift;
     to_print = key_map[caps_idx][scan_code];
 
-    // if(cur_line_counter >= 25) {
-    //     clear();
-    //     cur_line_counter = 0;
-    // }
-    // write character to the screen
-    putc(to_print);
+    if (onscreen_buff[buf_length].length==80)
+    {
+        putc('\n');
+        cur_line_counter++;
+    }
 
+    if(cur_line_counter >= 25) {
+        cur_line_counter = 0;
+         // for(a=0;a<onscreen_buff.length();a++)
+        // {
+        //     onscreen_buff[a].line=onscreen_buff[a+1].line;
+        //     for(b=0;b<onscreen_buff[a+1].length;b++)
+        //     {
+        //         putc(onscreen_buff[a+1].line[b]);
+        //     }
+        // }
+        buf_length=0;
+    }
+    // write character to the screen
+     if(onscreen_buff[buf_length].length<128)
+    {
+        onscreen_buff[buf_length].line[onscreen_buff[buf_length].length]=to_print;
+        onscreen_buff[buf_length].length+=1;
+        //printf("%d\n",scan_code);
+        putc(to_print);
+        //printf("\n%c",to_print);
+    }
     send_eoi(IRQ_LINE_KEYBOARD); 
 
     return;
