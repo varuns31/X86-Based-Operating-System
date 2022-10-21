@@ -156,6 +156,15 @@ void entry(unsigned long magic, unsigned long addr) {
     keyboard_handler_init();
     rtc_handler_init();
 
+
+    unsigned int val = 16;
+    unsigned int * test_rtc_buf = &val;
+
+    int test_rtc_write = rtc_write(0, test_rtc_buf, sizeof(test_rtc_buf));
+
+    unsigned int * test_rtc_filename = &val;
+    int test_rtc_open = rtc_open(test_rtc_filename);
+
     /* Enable interrupts */
     sti();
     

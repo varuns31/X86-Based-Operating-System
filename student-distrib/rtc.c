@@ -14,6 +14,9 @@
 // the register C offset mentioned by docs
 #define REG_C_IDX 0x8C
 
+// rtc constants
+#define DEFAULT_RTC_RATE 15
+
 
 /* 
  * rtc_handler_init
@@ -155,6 +158,7 @@ int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){
 
     // The formula to calculate the interrupt rate is:
     //   freq. = 32768 >> (rate-1)
+
     unsigned int rate = 1;
 
     unsigned int freq_count = 32768;
@@ -181,6 +185,8 @@ int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){
 int32_t rtc_open (const uint8_t* filename){
     if(filename == NULL)
         return -1;
+
+    rtc_handler_set_rate(DEFAULT_RTC_RATE);
     return 0;
 }
 
