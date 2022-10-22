@@ -8,7 +8,7 @@
 #define NUM_POSSIBLE_ENTRIES (DATABLOCK_SIZE/64)-1 //each directory entry is 64bytes
 #define NUM_DATABLOCK_ENTRIES MAX_BYTES_IN_BLOCK-1 // First value in inode is length rest are datablocks
 
-typedef struct dentry_object 
+typedef struct dentry_t 
 {
     char file_name[32];//32 Byte file size
     uint32_t file_type;
@@ -22,7 +22,7 @@ typedef struct boot_block
     uint32_t num_inodes;       
     uint32_t num_datablocks;
     char reserved[52];//52 Bytes reserved in boot_block
-    struct dentry_object dir_entries[NUM_POSSIBLE_ENTRIES];
+    struct dentry_t dir_entries[NUM_POSSIBLE_ENTRIES];
 } __attribute__ ((packed));
 
 typedef struct inode 
