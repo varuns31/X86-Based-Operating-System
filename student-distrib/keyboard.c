@@ -162,7 +162,7 @@ void keyboard_handler() {
             // int x = get_screen_x();
             int y = get_screen_y();
             set_screen(0,y+1);
-            if(onscreen_buff[0].length>80)y--;
+            //if(onscreen_buff[0].length>80)y--;
             clear();
             // int linear = y * 80 + x;
             // // cur_line_counter--;
