@@ -81,7 +81,7 @@ void rtc_handler() {
     inb(RTC_PORT_DATA);
 
     // call test case
-    test_interrupts();
+    // test_interrupts();
     
     send_eoi(IRQ_LINE_RTC);
 
