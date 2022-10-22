@@ -6,7 +6,7 @@
 #define DATABLOCK_SIZE 4096 //4kb data blocks
 #define MAX_BYTES_IN_BLOCK (DATABLOCK_SIZE/4) //each entry is 4bytes
 #define NUM_POSSIBLE_ENTRIES (DATABLOCK_SIZE/64)-1 //each directory entry is 64bytes
-
+#define NUM_DATABLOCK_ENTRIES MAX_BYTES_IN_BLOCK-1 // First value in inode is length rest are datablocks
 
 typedef struct dentry_object 
 {
@@ -28,12 +28,12 @@ typedef struct boot_block
 typedef struct inode 
 {
     uint32_t length;
-    uint32_t data_block_number[MAX_BYTES_IN_BLOCK-1];
+    uint32_t data_block_number[NUM_DATABLOCK_ENTRIES];
 } __attribute__ ((packed));
 
 typedef struct data_block 
 {
-    uint32_t data_block[MAX_BYTES_IN_BLOCK];
+    uint32_t data_blocks[MAX_BYTES_IN_BLOCK];
 } __attribute__ ((packed));
  
 #endif /* FS_H */
