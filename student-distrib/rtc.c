@@ -17,6 +17,7 @@
 // rtc constants
 #define DEFAULT_RTC_RATE 15
 
+volatile unsigned int rtc_flag = 0; 
 
 /* 
  * rtc_handler_init
@@ -111,6 +112,8 @@ void rtc_handler() {
     // flush the current value
     inb(RTC_PORT_DATA);
 
+    rtc_flag=1;
+
     // call test case
     test_interrupts();
     
@@ -119,8 +122,6 @@ void rtc_handler() {
     return; 
 }
 
-
-volatile unsigned int rtc_flag = 0; 
 
 /* 
  * rtc_read
@@ -131,7 +132,7 @@ volatile unsigned int rtc_flag = 0;
  *   SIDE EFFECTS: 
  */
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
-    while(rtc_flag);
+    while(!rtc_flag);
     return 0;
 }
 
