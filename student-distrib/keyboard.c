@@ -159,41 +159,7 @@ void keyboard_handler() {
 
     if(scan_code == 28) {        
         if(cur_line_counter >= 24) {
-            // int x = get_screen_x();
-            int y = get_screen_y();
-            set_screen(0,y+1);
-            //if(onscreen_buff[0].length>80)y--;
-            clear();
-            // int linear = y * 80 + x;
-            // // cur_line_counter--;
-            // set_screen(0,linear/80-1);
-            int a,b;
-            // if(onscreen_buff[0].length>80)
-            // {
-            //     cur_line_counter--;
-            //     set_screen(0,y-1);
-            // }
-            // else 
-            // {
-            //     cur_line_counter-=2;
-            //     set_screen(0,y-2);
-            // }
-            // screen_filled=1;
-            for(b=1;b<=buf_line_counter;b++)
-            {
-                for(a=0;a<onscreen_buff[b].length;a++)
-                {
-                    if(a==80)putc('\n');
-                    putc(onscreen_buff[b].line[a]);
-                    onscreen_buff[b-1].line[a]=onscreen_buff[b].line[a];
-                }
-                onscreen_buff[b-1].length=onscreen_buff[b].length;
-                putc('\n');
-            }
-            onscreen_buff[buf_line_counter].length=0;
-            set_screen(0,y-1);
-            // // putc('\n');
-            // // set_screen(0,24);
+            scrolling();
         }
         else
         {
@@ -213,6 +179,11 @@ void keyboard_handler() {
         cur_line_counter++;
     }
 
+    // if(onscreen_buff[buf_line_counter].length==80 && cur_line_counter>=24)
+    // {
+    //     send_eoi(IRQ_LINE_KEYBOARD); 
+    //     return;
+    // }
     // write character to the screen
      if(onscreen_buff[buf_line_counter].length<128)
     {
@@ -228,4 +199,30 @@ void keyboard_handler() {
     send_eoi(IRQ_LINE_KEYBOARD); 
 
     return;
+}
+
+void scrolling()
+{
+            int y = get_screen_y();
+            set_screen(0,y+1);
+            clear();
+            int a,b;
+            if(onscreen_buff[0].length>80)
+            {
+                y--;
+                cur_line_counter--;
+            }
+            for(b=1;b<=buf_line_counter;b++)
+            {
+                for(a=0;a<onscreen_buff[b].length;a++)
+                {
+                    if(a==80)putc('\n');
+                    putc(onscreen_buff[b].line[a]);
+                    onscreen_buff[b-1].line[a]=onscreen_buff[b].line[a];
+                }
+                onscreen_buff[b-1].length=onscreen_buff[b].length;
+                putc('\n');
+            }
+            onscreen_buff[buf_line_counter].length=0;
+            set_screen(0,y-1);
 }
