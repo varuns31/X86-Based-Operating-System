@@ -138,39 +138,8 @@ void keyboard_handler() {
         send_eoi(IRQ_LINE_KEYBOARD);
         return; 
     }
-
-    // if(scan_code == 14) {
-    //     int x = get_screen_x();
-    //     int y = get_screen_y();
-    //     int linear = y * 80 + x;
-    //     linear--;
-        
-    //     if(linear < 0) {
-    //         send_eoi(IRQ_LINE_KEYBOARD);
-    //         return;  
-    //     }
-
-    //     if(onscreen_buff[buf_length].length>80)set_screen(linear % 80, linear / 80);
-    //     else
-    //     {
-    //         if(x<=0)
-    //         {
-    //             send_eoi(IRQ_LINE_KEYBOARD);
-    //             return;
-    //         }
-    //         set_screen(x-1,y);
-    //     }
-    //     putc(' ');
-    //     x = get_screen_x();
-    //     y = get_screen_y();
-    //     linear = y * 80 + x;
-    //     linear--;
-    //     set_screen(linear % 80, linear / 80);
-    //     onscreen_buff[buf_length].length--;
-    //     send_eoi(IRQ_LINE_KEYBOARD);
-    //     return;
-    // }
-      if(scan_code == 14) {
+    if(scan_code == 14) 
+    {
         int x = get_screen_x();
         int y = get_screen_y();
         int linear = y * 80 + x;
@@ -191,7 +160,48 @@ void keyboard_handler() {
 
     if(scan_code == 28) {
         cur_line_counter++;
-        buf_length++;
+        
+        
+        if(cur_line_counter >= 25) {
+            // int x = get_screen_x();
+            int y = get_screen_y();
+            if(onscreen_buff[0].length>80)y--;
+            clear();
+            // int linear = y * 80 + x;
+            // // cur_line_counter--;
+            // set_screen(0,linear/80-1);
+            int a,b;
+            // if(onscreen_buff[0].length>80)
+            // {
+            //     cur_line_counter--;
+            //     set_screen(0,y-1);
+            // }
+            // else 
+            // {
+            //     cur_line_counter-=2;
+            //     set_screen(0,y-2);
+            // }
+            // screen_filled=1;
+            for(b=0;b<buf_length;b++)
+            {
+                onscreen_buff[b-1].length=onscreen_buff[b].length;
+                for(a=0;a<onscreen_buff[b].length;a++)
+                {
+                    if(a==80)putc('\n');
+                    printf("%s\n",(onscreen_buff[b].line));
+                    onscreen_buff[b-1].line[a]=onscreen_buff[b].line[a];
+                }
+            }
+            onscreen_buff[buf_length].length=0;
+            set_screen(0,y-1);
+            // // putc('\n');
+            // // set_screen(0,24);
+        }
+        else
+        {
+            buf_length++;
+            if(buf_length==25)buf_length=0;
+        }
     }
 
     char to_print;
@@ -205,35 +215,14 @@ void keyboard_handler() {
         cur_line_counter++;
     }
 
-    if(cur_line_counter >= 25 || (screen_filled==1 && scan_code==28)) {
-        int x=get_screen_x;
-        int y=get_screen_y;
-         clear();
-        set_screen(0, 0);
-        // int a,b;
-        cur_line_counter = 0;
-        // screen_filled=1;
-        // for(b=1;b<buf_length;b++)
-        // {
-        //     if(b==1)continue;
-        //     onscreen_buff[b-1].length=onscreen_buff[b].length;
-        //     for(a=0;a<onscreen_buff[b].length;a++)
-        //     {
-        //         //if(a==80)putc('\n');
-        //         putc(onscreen_buff[b].line[a]);
-        //         onscreen_buff[b-1].line[a]=onscreen_buff[b].line[a];
-        //     }
-        // }
-        // onscreen_buff[buf_length-1].length=0;
-         buf_length=0;
-        // putc('\n');
-        // set_screen(0,24);
-    }
     // write character to the screen
      if(onscreen_buff[buf_length].length<128)
     {
-        onscreen_buff[buf_length].line[onscreen_buff[buf_length].length]=to_print;
-        onscreen_buff[buf_length].length+=1;
+        if(scan_code!=28)
+        {
+            onscreen_buff[buf_length].line[onscreen_buff[buf_length].length]=to_print;
+            onscreen_buff[buf_length].length+=1;
+        }
         //printf("%d\n",scan_code);
         putc(to_print);
         //printf("\n%c",to_print);
