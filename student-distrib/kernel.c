@@ -11,6 +11,7 @@
 #include "paging.h"
 #include "keyboard.h"
 #include "rtc.h"
+#include "fs.h"
 
 #define RUN_TESTS
 
