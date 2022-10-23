@@ -170,10 +170,16 @@ void entry(unsigned long magic, unsigned long addr) {
 
     create_boot_block(fs_mod_start);
 
-    // int32_t test_val = read_dentry_by_name("grep", &test_dentry);
+    // int32_t test_val = read_dentry_by_name("frame1.txt", &test_dentry);
     // printf("Testing read_dentry_by_name\n");
     // puts(test_dentry.file_name);
-    // printf("\n  Return value: %d", test_val);
+    // printf("\n  Inode Number: %d", test_dentry.inode_number);
+    uint8_t* buf;
+    uint8_t buff[512];
+    buf=buff;
+    const unsigned int test_inode_num = 47;
+    int test_val = read_data(test_inode_num,0,buf,512);
+    puts(buff);
 
     // int32_t test_val = read_dentry_by_index(2, &test_dentry);
     // printf("Testing read_dentry_by_index\n");
