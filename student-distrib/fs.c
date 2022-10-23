@@ -22,7 +22,8 @@ void create_boot_block(fs_mod_start){
    our_boot_block = (boot_block *)fs_mod_start;
 }
 
-int32_t read_dentry_by_name(const uint8_t* fname, dentry_t * dentry){
+int32_t read_dentry_by_name(const uint8_t* fname, dentry_t * dentry)
+{
    
     // get string length
     unsigned int flength = 0;
@@ -41,9 +42,18 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t * dentry){
     return -1;
 }
 
-int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry){
+int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry)
+{
+    int temp = 10;
+    if(0 <= index && index <= NUM_POSSIBLE_ENTRIES){
+        if(our_boot_block->dir_entries[index].file_name[0] == '\0'){
+            return -1;
+        } 
+        memcpy((void*)dentry, (void*)(&(our_boot_block->dir_entries[index])), 512);
+        return 0;
+    }
 
-    return 0;
+    return -1;
 }
 
 

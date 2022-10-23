@@ -175,6 +175,11 @@ void entry(unsigned long magic, unsigned long addr) {
     // puts(test_dentry.file_name);
     // printf("\n  Return value: %d", test_val);
 
+    // int32_t test_val = read_dentry_by_index(2, &test_dentry);
+    // printf("Testing read_dentry_by_index\n");
+    // puts(test_dentry.file_name);
+    // printf("\n  Return value: %d", test_val);
+
     /*RTC TESTING*/
     // unsigned int val = 16;
     // unsigned int * test_rtc_buf = &val;
