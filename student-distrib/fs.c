@@ -212,6 +212,16 @@ int32_t directory_read(int32_t fd, void* buf, int32_t nbytes){
         
         putc('\n');
     }
-
-    
+    int32_t directory_write (int32_t fd, const void* buf, int32_t nbytes)
+    {
+        return 0;
+    }
+    int32_t directory_open (const uint8_t* filename)
+    {
+        return 0;
+    }
+    int32_t directory_close(int32_t fd)
+    {
+        return 0;
+    }
 }
