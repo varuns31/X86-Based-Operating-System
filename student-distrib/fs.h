@@ -4,7 +4,7 @@
 #include "lib.h"
 
 #define DATABLOCK_SIZE 4096 //4kb data blocks
-#define ABN_JUMP DATABLOCK_SIZE/32
+#define ABN_JUMP DATABLOCK_SIZE/4
 #define MAX_BYTES_IN_BLOCK (DATABLOCK_SIZE/4) //each entry is 4bytes
 #define NUM_POSSIBLE_ENTRIES (DATABLOCK_SIZE/64)-1 //each directory entry is 64bytes
 #define NUM_DATABLOCK_ENTRIES MAX_BYTES_IN_BLOCK-1 // First value in inode is length rest are datablocks

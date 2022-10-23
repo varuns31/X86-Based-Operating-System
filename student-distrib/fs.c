@@ -6,6 +6,7 @@ uint32_t* abn_ptr;//absolute block number pointer
 uint32_t* inode_ptr;
 uint32_t* data_block_ptr;
 
+
 // inode our_inodes[NUM_POSSIBLE_ENTRIES];
 // data_block our_data_blocks[NUM_DATABLOCK_ENTRIES*NUM_POSSIBLE_ENTRIES];
 
@@ -22,12 +23,12 @@ uint32_t* data_block_ptr;
 
 // }
 
-void create_boot_block(fs_mod_start){
-   our_boot_block = (boot_block *)fs_mod_start;
-   abn_ptr=(uint32_t*)fs_mod_start;
-   data_block_ptr = (uint32_t*)fs_mod_start;
-   data_block_ptr += ABN_JUMP * ((our_boot_block->num_inodes) + 1);
-}
+// void create_boot_block(fs_mod_start){
+//    our_boot_block = (boot_block *)fs_mod_start;
+//    abn_ptr=(uint32_t*)fs_mod_start;
+//    data_block_ptr = (uint32_t*)fs_mod_start;
+//    data_block_ptr += ABN_JUMP * ((our_boot_block->num_inodes) + 1);
+// }
 
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t * dentry)
 {
@@ -63,13 +64,22 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry)
 }
 
 
+void create_boot_block(fs_mod_start){
+
+   our_boot_block = (boot_block *)fs_mod_start;
+   abn_ptr=(uint32_t*)fs_mod_start;
+   data_block_ptr = (uint32_t*)fs_mod_start;
+   data_block_ptr += ABN_JUMP * ((our_boot_block->num_inodes) + 1);
+   inode_ptr = abn_ptr + ABN_JUMP;
+}
+
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
     uint32_t cur_length = 0;
 
     uint8_t* cur_buf_ptr = buf;
 
-    inode_ptr = abn_ptr + ABN_JUMP*(inode+1);
+    inode_ptr += ABN_JUMP*(inode);
 
     uint32_t* cur_block_num_ptr = inode_ptr + 1;
 
@@ -77,14 +87,14 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
 
     // uint32_t block_number_ptr = *(inode_ptr + (offset / 4) + 1);
     // uint32_t block_offset = length % 4;
-    uint32_t block_number ;
+    uint32_t block_number;
 
     while(cur_length<=length || cur_length<=inode_length)
     {
         block_number = *(cur_block_num_ptr);
         uint32_t* cur_data_ptr = data_block_ptr + (ABN_JUMP * block_number);
 
-        if(cur_length + 4096 >= inode_length)
+        if(inode_length - cur_length < 4096 && length - cur_length >= 4096)
         {
             memcpy(cur_buf_ptr,cur_data_ptr,inode_length - cur_length);
             return inode_length;
