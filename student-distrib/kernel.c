@@ -23,6 +23,8 @@ extern void paging_init();
 
 // used to file system
 uint32_t fs_mod_start;
+dentry_t test_dentry;
+// dentry_t test_dentry_1;
 
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
@@ -32,6 +34,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Clear the screen. */
     clear();
+
 
     /* Am I booted by a Multiboot-compliant boot loader? */
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -167,6 +170,10 @@ void entry(unsigned long magic, unsigned long addr) {
 
     create_boot_block(fs_mod_start);
 
+    // int32_t test_val = read_dentry_by_name("grep", &test_dentry);
+    // printf("Testing read_dentry_by_name\n");
+    // puts(test_dentry.file_name);
+    // printf("\n  Return value: %d", test_val);
 
     /*RTC TESTING*/
     // unsigned int val = 16;
