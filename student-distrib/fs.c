@@ -2,6 +2,9 @@
 #include "lib.h"
 
 boot_block * our_boot_block;
+uint32_t* abn_ptr;//absolute block number pointer
+uint32_t* data_block_ptr;
+
 // inode our_inodes[NUM_POSSIBLE_ENTRIES];
 // data_block our_data_blocks[NUM_DATABLOCK_ENTRIES*NUM_POSSIBLE_ENTRIES];
 
@@ -20,6 +23,9 @@ boot_block * our_boot_block;
 
 void create_boot_block(fs_mod_start){
    our_boot_block = (boot_block *)fs_mod_start;
+   abn_ptr=(uint32_t*)fs_mod_start;
+   data_block_ptr = (uint32_t*)fs_mod_start;
+   data_block_ptr += ABN_JUMP * ((our_boot_block->num_inodes) + 1);
 }
 
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t * dentry)
@@ -44,7 +50,6 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t * dentry)
 
 int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry)
 {
-    int temp = 10;
     if(0 <= index && index <= NUM_POSSIBLE_ENTRIES){
         if(our_boot_block->dir_entries[index].file_name[0] == '\0'){
             return -1;
@@ -57,7 +62,9 @@ int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry)
 }
 
 
-int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length){
+int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
+{
+    abn_ptr+= ABN_JUMP*(inode+1);
 
     return 0;
 }
