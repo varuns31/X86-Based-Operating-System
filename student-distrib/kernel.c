@@ -21,6 +21,9 @@ extern void paging_init();
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
+// used to file system
+uint32_t fs_mod_start;
+
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void entry(unsigned long magic, unsigned long addr) {
@@ -58,6 +61,9 @@ void entry(unsigned long magic, unsigned long addr) {
         int mod_count = 0;
         int i;
         module_t* mod = (module_t*)mbi->mods_addr;
+        
+        fs_mod_start = mod->mod_start;
+
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -159,7 +165,7 @@ void entry(unsigned long magic, unsigned long addr) {
     rtc_handler_init();
 
 
-
+    create_boot_block(fs_mod_start);
 
 
     /*RTC TESTING*/
