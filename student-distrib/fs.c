@@ -71,6 +71,8 @@ void create_boot_block(fs_mod_start){
 
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
+    create_boot_block(abn_ptr);
+
     uint32_t cur_length = 0;
 
     uint8_t* cur_buf_ptr = buf;

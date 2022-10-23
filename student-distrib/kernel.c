@@ -185,9 +185,9 @@ void entry(unsigned long magic, unsigned long addr) {
     // puts((char*)buff);
     // printf("\nReturn value for read: %d\n", fs_read_test_val);
 
-    // // /*Testing close and read*/
-    // int fs_close_ret_val = fs_close(cur_fd);
-    // printf("Return value for close: %d\n", fs_close_ret_val);
+    // /*Testing close and read*/
+    // // int fs_close_ret_val = fs_close(cur_fd);
+    // // printf("Return value for close: %d\n", fs_close_ret_val);
 
     // uint8_t* buf2;
     // uint8_t buf2f[512];
