@@ -224,16 +224,23 @@ void keyboard_handler() {
     //     return;
     // }
     // write character to the screen
-     if(curr_buff_length<=128)
+    if(curr_buff_length>=127)
     {
-        onscreen_buff[cur_line_counter].line[onscreen_buff[cur_line_counter].length]=to_print;
-        onscreen_buff[cur_line_counter].length+=1;
-        current_buffer[curr_buff_length]=to_print;
-        curr_buff_length++;
-        //printf("%d\n",scan_code);
-        putc(to_print);
-        //printf("\n%c",to_print);
+        send_eoi(IRQ_LINE_KEYBOARD); 
+
+        return;
     }
+
+    onscreen_buff[cur_line_counter].line[onscreen_buff[cur_line_counter].length]=to_print;
+    current_buffer[curr_buff_length]=to_print;
+    
+    curr_buff_length++;
+    onscreen_buff[cur_line_counter].length+=1;
+
+    //printf("%d\n",scan_code);
+    putc(to_print);
+    //printf("\n%c",to_print);
+
     send_eoi(IRQ_LINE_KEYBOARD); 
 
     return;
