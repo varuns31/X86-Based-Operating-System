@@ -68,11 +68,15 @@ void keyboard_handler_init() {
     key_tracker.ctrl = 0;
     key_tracker.alt = 0;
     cur_line_counter=get_screen_y();
-    int i=0;
+    int i=0,j=0;
     for(i=0;i<25;i++)
     {
         onscreen_buff[i].line=lines[i];
         onscreen_buff[i].length=0;
+        for(j=0;j<80;j++)
+        {
+            onscreen_buff[i].line[j]=' ';
+        }
     }
 
  
@@ -172,13 +176,14 @@ void keyboard_handler() {
         }
 
         if(x==0)cur_line_counter--;
-        onscreen_buff[cur_line_counter].length--;
 
         set_screen(linear % 80, linear / 80);
         putc(' ');
         set_screen(linear % 80, linear / 80);
+
         curr_buff_length--;
         onscreen_buff[cur_line_counter].length--;
+
         send_eoi(IRQ_LINE_KEYBOARD);
         return;
     }
@@ -205,7 +210,7 @@ void keyboard_handler() {
     if(!is_alpha(scan_code)) caps_idx = key_tracker.shift;
     to_print = key_map[caps_idx][scan_code];
 
-    if (curr_buff_length==79)
+    if (curr_buff_length==80)
     {
         putc('\n');
         // if(cur_line_counter==24)scrolling();
