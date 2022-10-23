@@ -23,7 +23,7 @@ extern void paging_init();
 
 // used to file system
 uint32_t fs_mod_start;
-// dentry_t test_dentry;
+dentry_t test_dentry;
 // dentry_t test_dentry_1;
 
 /* Check if MAGIC is valid and print the Multiboot information structure
@@ -178,15 +178,15 @@ void entry(unsigned long magic, unsigned long addr) {
 
 
     // /* Testing file open and read*/
-    // int cur_fd = fs_open("frame1.txt");
+    // int cur_fd = fs_open("verylargetextwithverylongname.txt");
 
     // set_screen(0,0);
 
     // uint8_t* buf;
     // uint8_t buff[512];
     // buf=buff;
-    // const unsigned int test_inode_num = 47;
-    // int fs_read_test_val = fs_read(cur_fd,buf,174);
+    // // const unsigned int test_inode_num = 44;
+    // int fs_read_test_val = fs_read(cur_fd,buf,512);
     // puts((char*)buff);
     // printf("\nReturn value for read: %d\n", fs_read_test_val);
 
@@ -204,7 +204,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
 
 
-    // int32_t test_val = read_dentry_by_name("frame1.txt", &test_dentry);
+    // int32_t test_val = read_dentry_by_name("verylargetextwithverylongname.txt", &test_dentry);
     // printf("Testing read_dentry_by_name\n");
     // puts(test_dentry.file_name);
     // printf("\n  Inode Number: %d", test_dentry.inode_number);

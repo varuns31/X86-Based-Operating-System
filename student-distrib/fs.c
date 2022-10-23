@@ -32,7 +32,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t * dentry)
     // get string length
     unsigned int flength = 0;
 
-    while(fname[flength] != '\0')
+    while(fname[flength] != '\0' && flength < 32)
         flength++;
 
     int i;
@@ -149,9 +149,7 @@ int32_t fs_read (int32_t fd, void* buf, int32_t nbytes){
     }
 
     unsigned int inode_num = file_array[fd].inode_num;
-    read_data(inode_num, 0, buf, nbytes);
-
-    return 0;
+    return read_data(inode_num, 0, buf, nbytes);
 }
 
 int32_t fs_write (int32_t fd, const void* buf, int32_t nbytes){
