@@ -171,9 +171,14 @@ void entry(unsigned long magic, unsigned long addr) {
 
     create_boot_block(fs_mod_start);  
 
+    // /* Testing directory read*/
+    // set_screen(0,0);
+    // int test_directory_read_val = directory_read(0, NULL, 0);
 
-    /* Testing file open and read*/
-    // int cur_fd = fs_open("frame0.txt");
+
+
+    // /* Testing file open and read*/
+    // int cur_fd = fs_open("frame1.txt");
 
     // set_screen(0,0);
 
@@ -186,8 +191,8 @@ void entry(unsigned long magic, unsigned long addr) {
     // printf("\nReturn value for read: %d\n", fs_read_test_val);
 
     // /*Testing close and read*/
-    // // int fs_close_ret_val = fs_close(cur_fd);
-    // // printf("Return value for close: %d\n", fs_close_ret_val);
+    // int fs_close_ret_val = fs_close(cur_fd);
+    // printf("Return value for close: %d\n", fs_close_ret_val);
 
     // uint8_t* buf2;
     // uint8_t buf2f[512];

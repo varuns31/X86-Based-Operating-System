@@ -188,3 +188,30 @@ int32_t fs_close (int32_t fd){
     }
     return -1;
 }
+
+int32_t directory_read(int32_t fd, void* buf, int32_t nbytes){
+    int i = 0;
+    for(i = 0; i < 15; i++){
+        printf("File Name: ");
+        int j = 32 - strlen(our_boot_block->dir_entries[i].file_name);
+        while(j){
+            putc(' ');
+            j--;
+        }
+
+        // print name
+        puts(our_boot_block->dir_entries[i].file_name);
+        printf(", file type: %d", our_boot_block->dir_entries[i].file_type);
+
+        // print size
+        // create_boot_block(abn_ptr);
+        inode_ptr = abn_ptr + ABN_JUMP;
+        inode_ptr += ABN_JUMP*(our_boot_block->dir_entries[i].inode_number);
+        uint32_t inode_length = *(inode_ptr);
+        printf(", file size: %d", inode_length);
+        
+        putc('\n');
+    }
+
+    
+}
