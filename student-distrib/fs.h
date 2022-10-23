@@ -11,6 +11,8 @@
 
 extern void create_boot_block();
 
+extern void create_file_array();
+
 typedef struct __attribute__ ((packed))
 {
     uint8_t file_name[32];//32 Byte file size
@@ -39,6 +41,14 @@ typedef struct __attribute__ ((packed))
     uint32_t data_blocks[MAX_BYTES_IN_BLOCK];
 } data_block;
 
+typedef struct __attribute__ ((packed))
+{
+    uint32_t* table_ptr;
+    uint32_t inode_num;
+    uint32_t file_pos;
+    uint32_t flags;
+}  fd_node;
+
 
 extern int32_t read_dentry_by_name (const uint8_t* fname, dentry_t * dentry);
 
@@ -46,4 +56,18 @@ extern int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry);
 
 extern int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length);
  
+
+//
+
+
+extern int32_t fs_read (int32_t fd, void* buf, int32_t nbytes);
+
+extern int32_t fs_write (int32_t fd, const void* buf, int32_t nbytes);
+
+extern int32_t fs_open (const uint8_t* filename);
+
+extern int32_t fs_close (int32_t fd);
+
+
+
 #endif /* FS_H */

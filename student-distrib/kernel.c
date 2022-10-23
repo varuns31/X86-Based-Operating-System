@@ -23,7 +23,7 @@ extern void paging_init();
 
 // used to file system
 uint32_t fs_mod_start;
-dentry_t test_dentry;
+// dentry_t test_dentry;
 // dentry_t test_dentry_1;
 
 /* Check if MAGIC is valid and print the Multiboot information structure
@@ -167,8 +167,37 @@ void entry(unsigned long magic, unsigned long addr) {
     keyboard_handler_init();
     rtc_handler_init();
 
+    create_file_array(); 
 
-    create_boot_block(fs_mod_start);
+    create_boot_block(fs_mod_start);  
+
+
+    /* Testing file open and read*/
+    // int cur_fd = fs_open("frame0.txt");
+
+    // set_screen(0,0);
+
+    // uint8_t* buf;
+    // uint8_t buff[512];
+    // buf=buff;
+    // const unsigned int test_inode_num = 47;
+    // int fs_read_test_val = fs_read(cur_fd,buf,174);
+    // puts((char*)buff);
+    // printf("\nReturn value for read: %d\n", fs_read_test_val);
+
+    // // /*Testing close and read*/
+    // int fs_close_ret_val = fs_close(cur_fd);
+    // printf("Return value for close: %d\n", fs_close_ret_val);
+
+    // uint8_t* buf2;
+    // uint8_t buf2f[512];
+    // buf2=buf2f;
+    // printf("Trying to read closed file:\n");
+    // fs_read_test_val = fs_read(cur_fd,buf2,174);
+    // printf("Return value for read: %d\n", fs_read_test_val);
+    // puts((char*)buf2f);
+
+
 
     // int32_t test_val = read_dentry_by_name("frame1.txt", &test_dentry);
     // printf("Testing read_dentry_by_name\n");
@@ -180,8 +209,9 @@ void entry(unsigned long magic, unsigned long addr) {
     // uint8_t buff[512];
     // buf=buff;
     // const unsigned int test_inode_num = 47;
-    // int test_val = read_data(test_inode_num,10,buf,507);
-    // puts(buff);
+    // int test_val = read_data(test_inode_num,0,buf,174);
+    // puts((char*)buff);
+    // printf("%d", test_val);
 
     // int32_t test_val = read_dentry_by_index(2, &test_dentry);
     // printf("Testing read_dentry_by_index\n");
