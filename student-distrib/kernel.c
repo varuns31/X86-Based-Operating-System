@@ -180,7 +180,7 @@ void entry(unsigned long magic, unsigned long addr) {
     // uint8_t buff[512];
     // buf=buff;
     // const unsigned int test_inode_num = 47;
-    // int test_val = read_data(test_inode_num,0,buf,512);
+    // int test_val = read_data(test_inode_num,10,buf,507);
     // puts(buff);
 
     // int32_t test_val = read_dentry_by_index(2, &test_dentry);

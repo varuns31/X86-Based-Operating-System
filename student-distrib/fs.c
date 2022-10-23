@@ -5,6 +5,7 @@ boot_block * our_boot_block;
 uint32_t* abn_ptr;//absolute block number pointer
 uint32_t* inode_ptr;
 uint32_t* data_block_ptr;
+unsigned int data_offset = 1;
 
 
 // inode our_inodes[NUM_POSSIBLE_ENTRIES];
@@ -82,24 +83,49 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     inode_ptr += ABN_JUMP*(inode);
 
     uint32_t* cur_block_num_ptr = inode_ptr + 1;
+    cur_block_num_ptr += offset / 4096;
 
     uint32_t inode_length = *(inode_ptr);
+    inode_length -= offset;
 
-    // uint32_t block_number_ptr = *(inode_ptr + (offset / 4) + 1);
-    // uint32_t block_offset = length % 4;
+    data_offset = offset % 4096;
+  
     uint32_t block_number;
 
     while(cur_length<=length || cur_length<=inode_length)
     {
         block_number = *(cur_block_num_ptr);
-        uint32_t* cur_data_ptr = data_block_ptr + (ABN_JUMP * block_number);
+        uint8_t* cur_data_ptr = data_block_ptr + (ABN_JUMP * block_number);
 
+        // start with offset
+        if(cur_length == 0  && offset!= 0)
+        {
+            if(inode_length - (cur_length + data_offset) < 4096 && length - (cur_length + data_offset) >= 4096)
+            {
+                memcpy(cur_buf_ptr,cur_data_ptr + data_offset,inode_length - (cur_length + data_offset));
+                return inode_length;
+            }
+
+            //Amount to read reached condition
+            if(length - (cur_length + data_offset) < 4096)
+            {
+                memcpy(cur_buf_ptr,cur_data_ptr + data_offset,length - (cur_length + data_offset));
+                return length;
+            }
+            memcpy(cur_buf_ptr, cur_data_ptr + data_offset, 4096 - offset);
+            cur_length += 4096 - data_offset;
+            cur_buf_ptr += 4096 - data_offset;
+            
+        }
+
+        //eof condition
         if(inode_length - cur_length < 4096 && length - cur_length >= 4096)
         {
             memcpy(cur_buf_ptr,cur_data_ptr,inode_length - cur_length);
             return inode_length;
         }
 
+        //Amount to read reached condition
         if(length-cur_length < 4096)
         {
             memcpy(cur_buf_ptr,cur_data_ptr,length-cur_length);
@@ -109,7 +135,7 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
         {
             memcpy(cur_buf_ptr, cur_data_ptr, 4096);
             cur_length += 4096;
-            cur_buf_ptr += 4096/8;
+            cur_buf_ptr += 4096;
         }
         cur_block_num_ptr++;
     }
