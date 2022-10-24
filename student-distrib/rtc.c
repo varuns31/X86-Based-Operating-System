@@ -112,7 +112,7 @@ void rtc_handler() {
     // flush the current value
     inb(RTC_PORT_DATA);
 
-    rtc_flag=1;
+    rtc_flag = 1;
 
     // call test case
     // test_interrupts();
@@ -133,6 +133,7 @@ void rtc_handler() {
  */
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
     while(!rtc_flag);
+    rtc_flag = 0;
     return 0;
 }
 

@@ -1,6 +1,8 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "rtc.h"	
+#include "keyboard.h"	
 
 #define PASS 1
 #define FAIL 0
@@ -85,6 +87,36 @@ int page_test() {
 	return result;
 }
 
+/* Page Fault Test
+ * 
+ * Asserts that page fault works - boundaries of the pages
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: Load Pages/ Validation of pages
+ * Files: paging.c/h, enable_paging.S
+ */
+int rtc_test() {
+	set_screen(0, 0);
+
+	int i, j;
+	int num = 2;
+
+	for(i = 15; i >= 7; i--){
+		rtc_handler_set_rate(i);
+		for(j = 0; j <= num; j++){
+			if (j % 80 == 0) set_screen(get_screen_x(), get_screen_y() + 1);
+			if (! rtc_read(0, 0, 0)) putc('1');
+		}
+		clear();
+		set_screen(0, 0);
+		num *= 2;
+	}
+
+
+	return PASS;
+}
+
 /* Checkpoint 2 tests */
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -95,5 +127,6 @@ int page_test() {
 void launch_tests() {
 	// TEST_OUTPUT("idt_test", idt_test());
 	// TEST_OUTPUT("idt_exception_divide_by_zero", idt_exception_divide_by_zero());
-	TEST_OUTPUT("PF Test", page_test());
+	// TEST_OUTPUT("PF Test", rtc_test());
+	rtc_test();
 }
