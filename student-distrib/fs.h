@@ -8,6 +8,9 @@
 #define MAX_BYTES_IN_BLOCK (DATABLOCK_SIZE/4) //each entry is 4bytes
 #define NUM_POSSIBLE_ENTRIES (DATABLOCK_SIZE/64)-1 //each directory entry is 64bytes
 #define NUM_DATABLOCK_ENTRIES MAX_BYTES_IN_BLOCK-1 // First value in inode is length rest are datablocks
+#define FILE_ARRAY_SIZE 8
+#define MAX_FILE_NAME_LENGTH 32
+#define DENTRY_BLOCK_SIZE 64
 
 extern void create_boot_block();
 

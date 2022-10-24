@@ -7,18 +7,25 @@ uint32_t* inode_ptr;
 uint32_t* data_block_ptr;
 unsigned int data_offset = 1;
 
-
 // create filesystem array node
-fd_node file_array[8];
+fd_node file_array[FILE_ARRAY_SIZE];
 dentry_t temp_dentry;
 
+/* 
+ * create_file_array
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 void create_file_array(){
     int i;
     // to handle stdin and stdout
     file_array[0].flags = 1;
     file_array[1].flags = 1;
 
-    for(i = 2; i < 8; i++){
+    for(i = 2; i < FILE_ARRAY_SIZE; i++){
         file_array[i].table_ptr = NULL;
         file_array[i].inode_num = 0;
         file_array[i].file_pos = 0;
@@ -26,42 +33,64 @@ void create_file_array(){
     }
 }
 
+/* 
+ * read_dentry_by_name
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 int32_t read_dentry_by_name(const uint8_t* fname, dentry_t * dentry)
 {
    
     // get string length
     unsigned int flength = 0;
 
-    while(fname[flength] != '\0' && flength < 32)
+    while(fname[flength] != '\0' && flength < MAX_FILE_NAME_LENGTH)
         flength++;
 
     int i;
     for(i = 0; i <= NUM_POSSIBLE_ENTRIES; i++){
         uint8_t * cur_file = our_boot_block->dir_entries[i].file_name;
         if(!strncmp((int8_t*)cur_file,(int8_t*)fname, flength)){
-            memcpy((void*)dentry, (void*)(&(our_boot_block->dir_entries[i])), 512);
+            memcpy((void*)dentry, (void*)(&(our_boot_block->dir_entries[i])), DENTRY_BLOCK_SIZE);
             return 0;
         }
     }
     return -1;
 }
 
+/* 
+ * read_dentry_by_index
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 int32_t read_dentry_by_index (uint32_t index, dentry_t * dentry)
 {
     if(0 <= index && index <= NUM_POSSIBLE_ENTRIES){
         if(our_boot_block->dir_entries[index].file_name[0] == '\0'){
             return -1;
         } 
-        memcpy((void*)dentry, (void*)(&(our_boot_block->dir_entries[index])), 512);
+        memcpy((void*)dentry, (void*)(&(our_boot_block->dir_entries[index])), DENTRY_BLOCK_SIZE);
         return 0;
     }
 
     return -1;
 }
 
-
+/* 
+ * create_boot_block
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 void create_boot_block(fs_mod_start){
-
    our_boot_block = (boot_block *)fs_mod_start;
    abn_ptr=(uint32_t*)fs_mod_start;
    data_block_ptr = (uint32_t*)fs_mod_start;
@@ -69,6 +98,14 @@ void create_boot_block(fs_mod_start){
    inode_ptr = abn_ptr + ABN_JUMP;
 }
 
+/* 
+ * read_data
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t length)
 {
     create_boot_block(abn_ptr);
@@ -80,12 +117,12 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     inode_ptr += ABN_JUMP*(inode);
 
     uint32_t* cur_block_num_ptr = inode_ptr + 1;
-    cur_block_num_ptr += offset / 4096;
+    cur_block_num_ptr += offset / DATABLOCK_SIZE;
 
     uint32_t inode_length = *(inode_ptr);
     inode_length -= offset;
 
-    data_offset = offset % 4096;
+    data_offset = offset % DATABLOCK_SIZE;
   
     uint32_t block_number;
 
@@ -97,42 +134,42 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
         // start with offset
         if(cur_length == 0  && offset!= 0)
         {
-            if(inode_length - (cur_length + data_offset) < 4096 && length - (cur_length + data_offset) >= 4096)
+            if(inode_length - (cur_length + data_offset) < DATABLOCK_SIZE && length - (cur_length + data_offset) >= DATABLOCK_SIZE)
             {
                 memcpy(cur_buf_ptr,cur_data_ptr + data_offset,inode_length - (cur_length + data_offset));
                 return inode_length;
             }
 
             //Amount to read reached condition
-            if(length - (cur_length + data_offset) < 4096)
+            if(length - (cur_length + data_offset) < DATABLOCK_SIZE)
             {
                 memcpy(cur_buf_ptr,cur_data_ptr + data_offset,length - (cur_length + data_offset));
                 return length;
             }
-            memcpy(cur_buf_ptr, cur_data_ptr + data_offset, 4096 - offset);
-            cur_length += 4096 - data_offset;
-            cur_buf_ptr += 4096 - data_offset;
+            memcpy(cur_buf_ptr, cur_data_ptr + data_offset, DATABLOCK_SIZE - offset);
+            cur_length += DATABLOCK_SIZE - data_offset;
+            cur_buf_ptr += DATABLOCK_SIZE - data_offset;
             
         }
 
         //eof condition
-        if(inode_length - cur_length < 4096 && length - cur_length >= 4096)
+        if(inode_length - cur_length < DATABLOCK_SIZE && length - cur_length >= DATABLOCK_SIZE)
         {
             memcpy(cur_buf_ptr,cur_data_ptr,inode_length - cur_length);
             return inode_length;
         }
 
         //Amount to read reached condition
-        if(length-cur_length < 4096)
+        if(length-cur_length < DATABLOCK_SIZE)
         {
             memcpy(cur_buf_ptr,cur_data_ptr,length-cur_length);
             return length;
         }
         else
         {
-            memcpy(cur_buf_ptr, cur_data_ptr, 4096);
-            cur_length += 4096;
-            cur_buf_ptr += 4096;
+            memcpy(cur_buf_ptr, cur_data_ptr, DATABLOCK_SIZE);
+            cur_length += DATABLOCK_SIZE;
+            cur_buf_ptr += DATABLOCK_SIZE;
         }
         cur_block_num_ptr++;
     }
@@ -140,7 +177,14 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
     return cur_length;
 }
 
-
+/* 
+ * fs_read
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 int32_t fs_read (int32_t fd, void* buf, int32_t nbytes){
 
     if(file_array[fd].flags == 0){
@@ -152,10 +196,26 @@ int32_t fs_read (int32_t fd, void* buf, int32_t nbytes){
     return read_data(inode_num, 0, buf, nbytes);
 }
 
+/* 
+ * fs_write
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 int32_t fs_write (int32_t fd, const void* buf, int32_t nbytes){
     return -1;
 }
 
+/* 
+ * fs_open
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 int32_t fs_open (const uint8_t* filename){
     int32_t temp_val = read_dentry_by_name(filename, &temp_dentry);
 
@@ -176,6 +236,14 @@ int32_t fs_open (const uint8_t* filename){
     return fd_idx;
 }
 
+/* 
+ * fs_close
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 int32_t fs_close (int32_t fd){
     if(2 <= fd && fd < 8){
         file_array[fd].inode_num = 0;
@@ -187,21 +255,52 @@ int32_t fs_close (int32_t fd){
     return -1;
 }
 
+/* 
+ * directory_read
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
 int32_t directory_read(int32_t fd, void* buf, int32_t nbytes){
     memcpy(buf, our_boot_block->dir_entries[fd].file_name, 32);
     return 0;
 }
 
-int32_t directory_write (int32_t fd, const void* buf, int32_t nbytes)
-{
+/* 
+ * directory_write
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
+int32_t directory_write (int32_t fd, const void* buf, int32_t nbytes){
     return 0;
 }
-int32_t directory_open (const uint8_t* filename)
-{
+
+/* 
+ * directory_open
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
+int32_t directory_open (const uint8_t* filename){
     return 0;
 }
-int32_t directory_close(int32_t fd)
-{
+
+/* 
+ * directory_close
+ *   DESCRIPTION: interrupt handler for RTC
+ *   INPUTS: none
+ *   OUTPUTS: none
+ *   RETURN VALUE: none
+ *   SIDE EFFECTS: 
+ */
+int32_t directory_close(int32_t fd){
     if(fd == 0 || fd == 1) return -1;
     return 0;
 }
