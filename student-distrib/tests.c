@@ -110,7 +110,7 @@ int rtc_test() {
 	// test all frequencies from 2 to 512 hz. Multiply by 2
 	for(freq = 2; freq <= 512; freq *= 2){
 		// create a buffer for frequency
-		unsigned int * test_rtc_buf = &freq;
+		int * test_rtc_buf = &freq;
 
 		// change the rtc freq to a specific rtc freq
 		rtc_write(0, test_rtc_buf, sizeof(test_rtc_buf));
@@ -189,8 +189,7 @@ int fs_test_read_dir() {
  */
 int fs_test_fopen() {
 	// try to open invalid file
-	const char* filename = "jsi.txt";
-    int cur_fd = fs_open((char*) filename);
+    int cur_fd = fs_open((uint8_t*) "jsi.txt");
 
 	// reset screen to start, create a buffer, and then read the file
 	set_screen(0, 0);
@@ -216,8 +215,7 @@ int fs_test_fopen() {
  */
 int fs_test_fclose() {
 	// open a file, reset screen, and create a buffer
-	const char* filename = "verylargetextwithverylongname.txt";
-    int cur_fd = fs_open((char*) filename);
+    int cur_fd = fs_open((uint8_t*) "verylargetextwithverylongname.txt");
 	set_screen(0, 0);
 	uint8_t* buf;
     uint8_t buff[512];
@@ -245,8 +243,7 @@ int fs_test_fclose() {
  * Files: rtc.c/h
  */
 int fs_test_fread() {
-	const char* filename = "verylargetextwithverylongname.txt";
-    int cur_fd = fs_open((char*) filename);
+    int cur_fd = fs_open((uint8_t*) "verylargetextwithverylongname.txt");
     set_screen(0,0);
     uint8_t* buf;
     uint8_t buff[512];
@@ -277,8 +274,7 @@ int fs_test_fread() {
  * Files: rtc.c/h
  */
 int fs_test_fwrite() {
-	const char* filename = "verylargetextwithverylongname.txt";
-    int cur_fd = fs_open((char*) filename);
+    int cur_fd = fs_open((uint8_t*) "verylargetextwithverylongname.txt");
 	set_screen(0, 0);
 	uint8_t* buf;
     uint8_t buff[512];
@@ -301,7 +297,7 @@ int fs_test_fwrite() {
  * Files: 
  */
 int terminal_test_read() {
-	int fd = terminal_open("terminal");
+	int32_t fd = terminal_open((uint8_t*) "terminal");
 	
 	char buf[200];
 	int retval = terminal_read(fd, buf, 128);
