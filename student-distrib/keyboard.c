@@ -2,6 +2,7 @@
 
 #define IRQ_LINE_KEYBOARD 0x01
 #define KEYBOARD_PORT_ADDR 0x60
+#define VIDEO_START 0xB8000
 
 // create the keyboard map
 char key_map[2][128] = {
@@ -26,20 +27,11 @@ struct keyboard_mapper {
     int alt;
 } key_tracker;
 
-typedef struct keyboard_buffer {
-    char *line;
-    int length;
-};
-
-struct keyboard_buffer onscreen_buff[25]; 
-
 int cur_line_counter;
-char lines[25][80];
 
 volatile char current_buffer[128];
 volatile int curr_buff_length = 0;
 volatile int prev_curr_buff_length;
-
 volatile enter_pressed = 0;
 
 int is_alpha(int scan_code);
@@ -72,38 +64,20 @@ void keyboard_handler_init() {
     key_tracker.alt = 0;
 
     cur_line_counter = get_screen_y();
-    int i = 0, j = 0;
-    for(i = 0; i < 25; i++) {
-        onscreen_buff[i].line = lines[i];
-        onscreen_buff[i].length = 0;
-        for(j = 0; j < 80; j++)
-        {
-            onscreen_buff[i].line[j]=' ';
-        }
-    }
-
     return; 
 }
 
-void scrolling()
-{
+void scrolling() {
     int y = get_screen_y();
-    set_screen(0, y + 1);
-    clear();
-    int a, b;
-    for(b = 1; b <= cur_line_counter; b++)
-    {
-        for(a = 0; a < onscreen_buff[b].length; a++)
-        {
-            onscreen_buff[b - 1].line[a] = onscreen_buff[b].line[a];
-            putc(onscreen_buff[b].line[a]);
-        }
-
-        onscreen_buff[b-1].length = onscreen_buff[b].length;
-        putc('\n');
+    
+    char* video_mem = (char *)VIDEO_START;
+    memmove(video_mem, video_mem + ((80 * 1 + 0) << 1), 160 * 24);
+    int32_t i;
+    for (i = 0; i < 80; i++) {
+        *(uint8_t *)(video_mem + ((24 * 80 + i) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((24 * 80 + i) << 1) + 1) = 0x3;
     }
-
-    onscreen_buff[cur_line_counter].length = 0;
+    
     set_screen(0, y);
 }
 
@@ -187,7 +161,7 @@ void keyboard_handler() {
         set_screen(linear % 80, linear / 80);
 
         curr_buff_length--;
-        onscreen_buff[cur_line_counter].length--;
+        // onscreen_buff[cur_line_counter].length--;
 
         send_eoi(IRQ_LINE_KEYBOARD);
         return;
@@ -221,18 +195,18 @@ void keyboard_handler() {
 
     if (curr_buff_length == 80)
     {
-        putc('\n');
-        // if(cur_line_counter==24)scrolling();
-        // else
-        cur_line_counter++;
+        if(cur_line_counter>=24)
+        {
+            scrolling();
+        }
+        else
+        {
+            putc('\n');
+            cur_line_counter++;
+        }
     }
 
-    // if(onscreen_buff[buf_line_counter].length==80 && cur_line_counter>=24)
-    // {
-    //     send_eoi(IRQ_LINE_KEYBOARD); 
-    //     return;
-    // }
-    // write character to the screen
+
     if(curr_buff_length > 126)
     {
         send_eoi(IRQ_LINE_KEYBOARD); 
@@ -240,15 +214,10 @@ void keyboard_handler() {
         return;
     }
 
-    onscreen_buff[cur_line_counter].line[onscreen_buff[cur_line_counter].length] = to_print;
     current_buffer[curr_buff_length] = to_print;
-    
     curr_buff_length++;
-    onscreen_buff[cur_line_counter].length += 1;
 
-    //printf("%d\n",scan_code);
     putc(to_print);
-    //printf("\n%c",to_print);
 
     send_eoi(IRQ_LINE_KEYBOARD); 
 
@@ -294,7 +263,58 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes) {
 }
 
 int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes) {
+    if(buf == NULL) return -1;
+    int i;
+    char* buff = buf;
+    for(i = 0; i < nbytes; i++) {
+        if(i > 80 && get_screen_y() >= 24) {
+            scrolling();
+        } else if(i % 80 == 0 && i != 0) {
+            putc('\n');
+            cur_line_counter++;
+        }
+
+        if(buff[i] == "\0") continue;
+        putc(buff[i]);
+    }
+    return nbytes;
+}
+
+int32_t keyboard_open (const uint8_t* filename) {
+    keyboard_handler_init();
+    return 0;
+}
+
+int32_t keyboard_close (int32_t fd) {
+    if(fd == 0 || fd == 1) return -1;
+    return 0;
+}
+
+int32_t keyboard_read (int32_t fd, void* buf, int32_t nbytes) {
     
+    if(buf == NULL) return -1;
+
+    enter_pressed = 0;
+    char eol[2] = "\n\0";
+
+    while(enter_pressed != 1) {}
+    char* buff = buf;
+    int bytes_read = 0;
+
+    if(nbytes > prev_curr_buff_length) {
+        memcpy(buf, current_buffer, prev_curr_buff_length);
+        memcpy(buff + prev_curr_buff_length, eol, 2);
+        bytes_read = prev_curr_buff_length + 1;
+    } else {
+        memcpy(buf, current_buffer, nbytes);
+        memcpy(buff + nbytes, eol, 2);
+        bytes_read = nbytes + 1;
+    }
+
+    return bytes_read;
+}
+
+int32_t keyboard_write (int32_t fd, const void* buf, int32_t nbytes) {
     return 0;
 }
 
