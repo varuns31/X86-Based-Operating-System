@@ -22,7 +22,7 @@ void create_file_array(){
         file_array[i].table_ptr = NULL;
         file_array[i].inode_num = 0;
         file_array[i].file_pos = 0;
-        file_array[i].flags = 0;
+        file_array[i].flags = 0; 
     }
 }
 
@@ -188,38 +188,19 @@ int32_t fs_close (int32_t fd){
 }
 
 int32_t directory_read(int32_t fd, void* buf, int32_t nbytes){
-    int i = 0;
-    for(i = 0; i < 15; i++){
-        printf("File Name: ");
-        int j = 32 - strlen(our_boot_block->dir_entries[i].file_name);
-        while(j){
-            putc(' ');
-            j--;
-        }
+    memcpy(buf, our_boot_block->dir_entries[fd].file_name, 32);
+    return 0;
+}
 
-        // print name
-        puts(our_boot_block->dir_entries[i].file_name);
-        printf(", file type: %d", our_boot_block->dir_entries[i].file_type);
-
-        // print size
-        // create_boot_block(abn_ptr);
-        inode_ptr = abn_ptr + ABN_JUMP;
-        inode_ptr += ABN_JUMP*(our_boot_block->dir_entries[i].inode_number);
-        uint32_t inode_length = *(inode_ptr);
-        printf(", file size: %d", inode_length);
-        
-        putc('\n');
-    }
-    int32_t directory_write (int32_t fd, const void* buf, int32_t nbytes)
-    {
-        return 0;
-    }
-    int32_t directory_open (const uint8_t* filename)
-    {
-        return 0;
-    }
-    int32_t directory_close(int32_t fd)
-    {
-        return 0;
-    }
+int32_t directory_write (int32_t fd, const void* buf, int32_t nbytes)
+{
+    return 0;
+}
+int32_t directory_open (const uint8_t* filename)
+{
+    return 0;
+}
+int32_t directory_close(int32_t fd)
+{
+    return 0;
 }

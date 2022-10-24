@@ -73,4 +73,10 @@ extern int32_t directory_open (const uint8_t* filename);
 extern int32_t directory_close (int32_t fd);
 
 
+extern boot_block * our_boot_block;
+extern uint32_t* abn_ptr;//absolute block number pointer
+extern uint32_t* inode_ptr;
+extern uint32_t* data_block_ptr;
+extern unsigned int data_offset;
+
 #endif /* FS_H */

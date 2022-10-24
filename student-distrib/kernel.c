@@ -173,8 +173,36 @@ void entry(unsigned long magic, unsigned long addr) {
 
     // /* Testing directory read*/
     // set_screen(0,0);
-    // int test_directory_read_val = directory_read(0, NULL, 0);
 
+    // int i = 0;
+    // for(i = 0; i < 15; i++){
+
+    //     uint8_t* buf;
+    //     uint8_t buff[32];
+    //     buf=buff;
+
+    //     int test_directory_read_val = directory_read(i, buf, 0);
+
+    //     printf("File Name: ");
+    //     int j = 32 - strlen(buf);
+    //     while(j){
+    //         putc(' ');
+    //         j--;
+    //     }
+
+    //     // print name
+    //     puts(buf);
+    //     printf(", file type: %d", our_boot_block->dir_entries[i].file_type);
+
+    //     // print size
+    //     // create_boot_block(abn_ptr);
+    //     inode_ptr = abn_ptr + ABN_JUMP;
+    //     inode_ptr += ABN_JUMP*(our_boot_block->dir_entries[i].inode_number);
+    //     uint32_t inode_length = *(inode_ptr);
+    //     printf(", file size: %d", inode_length);
+        
+    //     putc('\n');
+    // }
 
 
     // /* Testing file open and read*/
