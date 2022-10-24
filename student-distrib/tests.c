@@ -287,7 +287,7 @@ int fs_test_fwrite() {
 	return FAIL;
 }
 
-/* fs_test_fopen
+/* terminal_test_read
  * 
  * Asserts that open for keyboard works
  * Inputs: None
@@ -297,16 +297,54 @@ int fs_test_fwrite() {
  * Files: 
  */
 int terminal_test_read() {
-	int fd = terminal_open("terminal");
+	int fd = terminal_open((uint8_t*) "terminal");
+	char buf[200];
+	int retval;
+	retval = terminal_read(fd, buf, 128);
+	puts(buf);
+	printf("Bytes read are %d\n", retval);
+	terminal_close(fd);
+	
+	return PASS;
+}
+
+/* terminal_test_write
+ * 
+ * Asserts that open for terminal works
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: may change rtc frequency
+ * Coverage: Reading / writing keyboard.c/h
+ * Files: 
+ */
+int terminal_test_write() {
+	int fd = terminal_open((uint8_t*) "terminal");
 	char buf[200] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 	int retval;
-	// int retval = terminal_read(fd, buf, 128);
-	// puts(buf);
-	// printf("Bytes read are %d\n", retval);
 	retval = terminal_write(fd, buf, 100);
 	printf("Bytes written are %d\n", retval);
 	terminal_close(fd);
 	
+	return PASS;
+}
+
+/* terminal_test_read_write
+ * 
+ * Asserts that open for terminal works
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: may change rtc frequency
+ * Coverage: Reading / writing keyboard.c/h
+ * Files: 
+ */
+int terminal_test_read_write() {
+	int fd = terminal_open((uint8_t*) "terminal");
+	char buf[200];
+	int retval;
+	retval = terminal_read(fd, buf, 3);
+	retval = terminal_write(fd, buf, 3);
+	terminal_close(fd);
+
 	return PASS;
 }
 
@@ -323,5 +361,9 @@ void launch_tests() {
 
 	// TEST_OUTPUT("Read dir test", fs_test_read_dir());
 	// TEST_OUTPUT("Read file test", fs_test_fread());
-	TEST_OUTPUT("Terminal read", terminal_test_read());
+
+	// TEST_OUTPUT("RTC test", rtc_test());
+	// TEST_OUTPUT("Terminal read", terminal_test_read());
+	// TEST_OUTPUT("Terminal write", terminal_test_write());
+	// TEST_OUTPUT("Terminal read write", terminal_test_read_write());
 }
