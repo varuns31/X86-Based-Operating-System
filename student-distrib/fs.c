@@ -39,7 +39,7 @@ int32_t read_dentry_by_name(const uint8_t* fname, dentry_t * dentry)
     for(i = 0; i <= NUM_POSSIBLE_ENTRIES; i++){
         uint8_t * cur_file = our_boot_block->dir_entries[i].file_name;
         if(!strncmp((int8_t*)cur_file,(int8_t*)fname, flength)){
-            memcpy((void*)dentry, (void*)(&(our_boot_block->dir_entries[i])), 512);
+            memcpy((void*)dentry, (void*)(&(our_boot_block->dir_entries[i])), 64);
             return 0;
         }
     }

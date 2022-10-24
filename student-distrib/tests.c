@@ -193,15 +193,16 @@ int fs_test_fwrite() {
 }
 
 int terminal_test_read() {
-
 	int fd = terminal_open("terminal");
-	
-	char buf[200];
-	int retval = terminal_read(fd, buf, 128);
-	puts(buf);
-	printf("Bytes read are %d\n", retval);
-
+	char buf[200] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
+	int retval;
+	// int retval = terminal_read(fd, buf, 128);
+	// puts(buf);
+	// printf("Bytes read are %d\n", retval);
+	retval = terminal_write(fd, buf, 100);
+	printf("Bytes written are %d\n", retval);
 	terminal_close(fd);
+	
 	return PASS;
 }
 
