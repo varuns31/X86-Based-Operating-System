@@ -16,6 +16,8 @@
 
 // rtc constants
 #define DEFAULT_RTC_RATE 15
+#define MAX_FREQ 32768
+#define MIN_FREQ 2
 
 volatile unsigned int rtc_flag = 0; 
 
@@ -104,7 +106,6 @@ void rtc_handler_set_rate(unsigned int rate) {
  *   SIDE EFFECTS: 
  */
 void rtc_handler() {
-
     // Register C
     // setup register C
     outb(REG_C_IDX, RTC_PORT_ADDR);
@@ -113,9 +114,6 @@ void rtc_handler() {
     inb(RTC_PORT_DATA);
 
     rtc_flag = 1;
-
-    // call test case
-    // test_interrupts();
     
     send_eoi(IRQ_LINE_RTC);
 
@@ -125,11 +123,13 @@ void rtc_handler() {
 
 /* 
  * rtc_read
- *   DESCRIPTION: 
- *   INPUTS: none
+ *   DESCRIPTION: Waits until an interrupt is fired and then sets the rtc_flag to 0 and return 0
+ *   INPUTS: fd - file descriptor for rtc
+ *           buf - unused, but it is usually for putting in the read data
+ *           nbytes - unused, but number of bytes read
  *   OUTPUTS: none
- *   RETURN VALUE: none
- *   SIDE EFFECTS: 
+ *   RETURN VALUE: read always returns a 0
+ *   SIDE EFFECTS: none
  */
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
     while(!rtc_flag);
@@ -139,11 +139,13 @@ int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
 
 /* 
  * rtc_write
- *   DESCRIPTION: 
- *   INPUTS: none
- *   OUTPUTS: none
- *   RETURN VALUE: none
- *   SIDE EFFECTS: 
+ *   DESCRIPTION: sets the rtc frequency to a certain number depending on what is passed in buffer
+ *   INPUTS: fd - file descriptor for rtc
+ *           buf - first 4 bytes contain the frequency we want to set the rtc to
+ *           nbytes - unused, but number of bytes that are written
+ *   OUTPUTS: None
+ *   RETURN VALUE: write always returns a 0
+ *   SIDE EFFECTS: None
  */
 int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){
 
@@ -154,17 +156,14 @@ int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){
     // get frequence from the buffer
     unsigned int frequency = *((unsigned int*)buf);
     
-    // check if frequency within boounds and a power of 2
-    if(frequency > 1024 || frequency < 2  || frequency % 2 != 0)
+    // check if frequency within bounds and a power of 2
+    if(frequency > MAX_FREQ || frequency < MIN_FREQ || frequency % 2 != 0)
         return -1;
 
-    // The formula to calculate the interrupt rate is:
-    //   freq. = 32768 >> (rate-1)
-
     unsigned int rate = 1;
+    unsigned int freq_count = MAX_FREQ;
 
-    unsigned int freq_count = 32768;
-
+    // get the rate from frequency
     while(freq_count != frequency){
         rate++;
         freq_count >>= 1;
@@ -178,11 +177,11 @@ int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){
 
 /* 
  * rtc_open
- *   DESCRIPTION: 
- *   INPUTS: none
+ *   DESCRIPTION: rtc rate changed to default
+ *   INPUTS: filename - for rtc
  *   OUTPUTS: none
- *   RETURN VALUE: none
- *   SIDE EFFECTS: 
+ *   RETURN VALUE: if the file name is not correct return -1
+ *   SIDE EFFECTS: rtc rate changed to default
  */
 int32_t rtc_open (const uint8_t* filename){
     if(filename == NULL)
@@ -194,13 +193,15 @@ int32_t rtc_open (const uint8_t* filename){
 
 /* 
  * rtc_close
- *   DESCRIPTION: 
- *   INPUTS: none
+ *   DESCRIPTION: The close system call closes the specified file descriptor and makes it available for return from later calls to open.
+ *   You should not allow the user to close the default descriptors (0 for input and 1 for output). 
+ *   INPUTS: fd - file descriptor
  *   OUTPUTS: none
- *   RETURN VALUE: none
- *   SIDE EFFECTS: 
+ *   RETURN VALUE: Trying to close an invalid descriptor should result in a return value of -1; successful closes should return 0.
+ *   SIDE EFFECTS: closes rtc
  */
 int32_t close (int32_t fd){
+    if (fd == 0 || fd == 1) return -1;
     return 0;
 }
 

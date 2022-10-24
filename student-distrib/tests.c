@@ -38,6 +38,8 @@ int idt_test() {
 
 	int i;
 	int result = PASS;
+
+	//check the first 10 IDT entries and if they are null 
 	for (i = 0; i < 10; ++i){
 		if ((idt[i].offset_15_00 == NULL) && 
 			(idt[i].offset_31_16 == NULL)){
@@ -89,7 +91,48 @@ int page_test() {
 	return result;
 }
 
-/* Page Fault Test
+/* Checkpoint 2 tests */
+
+/* rtc_test
+ * 
+ * Asserts that read / write works for RTC
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: may change rtc frequency
+ * Coverage: Reading / writing RTC 
+ * Files: rtc.c/h
+ */
+int rtc_test() {
+	// set screen to start
+	set_screen(0, 0);
+	int freq, i;
+
+	// test all frequencies from 2 to 512 hz. Multiply by 2
+	for(freq = 2; freq <= 512; freq *= 2){
+		// create a buffer for frequency
+		unsigned int * test_rtc_buf = &freq;
+
+		// change the rtc freq to a specific rtc freq
+		rtc_write(0, test_rtc_buf, sizeof(test_rtc_buf));
+
+		// print the characters each time an interrupt is fired. The number of chars printed will be equal to curr rtc freq
+		for(i = 0; i < freq; i++){
+			// there are a total of 80 chars in one line. if it we overflow start going to the next char
+			if (i % 80 == 0) putc('\n');
+
+			// once the interrupt has been fired print '1'
+			if (! rtc_read(0, 0, 0)) putc('1');
+		}
+
+		// clear screen and reset its position
+		clear();
+		set_screen(0, 0);
+	}
+
+	return PASS;
+}
+
+/* fs_test_read_dir
  * 
  * Asserts that page fault works - boundaries of the pages
  * Inputs: None
@@ -98,28 +141,6 @@ int page_test() {
  * Coverage: Load Pages/ Validation of pages
  * Files: paging.c/h, enable_paging.S
  */
-int rtc_test() {
-	set_screen(0, 0);
-
-	int i, j;
-	int num = 2;
-
-	for(i = 15; i >= 7; i--){
-		rtc_handler_set_rate(i);
-		for(j = 0; j <= num; j++){
-			if (j % 80 == 0) set_screen(get_screen_x(), get_screen_y() + 1);
-			if (! rtc_read(0, 0, 0)) putc('1');
-		}
-		clear();
-		set_screen(0, 0);
-		num *= 2;
-	}
-
-
-	return PASS;
-}
-
-/* Checkpoint 2 tests */
 int fs_test_read_dir() {
 	set_screen(0,0);
     int i = 0;
@@ -157,14 +178,72 @@ int fs_test_read_dir() {
 	return PASS;
 }
 
+/* fs_test_fopen
+ * 
+ * Asserts that fopen does not open an invalid file
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: None
+ * Coverage: open for file system
+ * Files: fs.c/h
+ */
 int fs_test_fopen() {
+	// try to open invalid file
+	const char* filename = "jsi.txt";
+    int cur_fd = fs_open((char*) filename);
+
+	// reset screen to start, create a buffer, and then read the file
+	set_screen(0, 0);
+	uint8_t* buf;
+    uint8_t buff[512];
+    buf = buff;
+
+	if (fs_read(cur_fd, buf, 512) == -1){
+		return FAIL;
+	}
+
 	return PASS;
 }
 
+/* fs_test_fopen
+ * 
+ * Asserts when we close a file, we can not read it again without opening it
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: none
+ * Coverage: Reading / writing RTC 
+ * Files: rtc.c/h
+ */
 int fs_test_fclose() {
+	// open a file, reset screen, and create a buffer
+	const char* filename = "verylargetextwithverylongname.txt";
+    int cur_fd = fs_open((char*) filename);
+	set_screen(0, 0);
+	uint8_t* buf;
+    uint8_t buff[512];
+    buf = buff;
+
+	// read and then close the file
+	fs_read(cur_fd, buf, 512);
+	fs_close(cur_fd);
+
+	// if the read does not not fail then return fail otherwise return pass
+	if (fs_read(cur_fd, buf, 512) != -1) {
+		return FAIL;
+	}
+
 	return PASS;
 }
 
+/* fs_test_fopen
+ * 
+ * Asserts that read / write works for RTC
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: none
+ * Coverage: Reading / writing RTC 
+ * Files: rtc.c/h
+ */
 int fs_test_fread() {
 	const char* filename = "verylargetextwithverylongname.txt";
     int cur_fd = fs_open((char*) filename);
@@ -188,12 +267,40 @@ int fs_test_fread() {
 	return PASS;
 }
 
+/* fs_test_fopen
+ * 
+ * Asserts write works for file system. This should return a fail as our file system is read only.
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: none
+ * Coverage: Reading / writing RTC 
+ * Files: rtc.c/h
+ */
 int fs_test_fwrite() {
-	return PASS;
+	const char* filename = "verylargetextwithverylongname.txt";
+    int cur_fd = fs_open((char*) filename);
+	set_screen(0, 0);
+	uint8_t* buf;
+    uint8_t buff[512];
+    buf = buff;
+
+	if (fs_write (cur_fd, buf, 512) == 1){
+		return PASS;
+	}
+
+	return FAIL;
 }
 
+/* fs_test_fopen
+ * 
+ * Asserts that open for keyboard works
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: may change rtc frequency
+ * Coverage: Reading / writing keyboard.c/h
+ * Files: 
+ */
 int terminal_test_read() {
-
 	int fd = terminal_open("terminal");
 	
 	char buf[200];
