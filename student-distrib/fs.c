@@ -202,5 +202,6 @@ int32_t directory_open (const uint8_t* filename)
 }
 int32_t directory_close(int32_t fd)
 {
+    if(fd == 0 || fd == 1) return -1;
     return 0;
 }

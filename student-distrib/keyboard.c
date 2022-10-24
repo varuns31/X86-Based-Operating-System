@@ -26,7 +26,7 @@ struct keyboard_mapper {
     int alt;
 } key_tracker;
 
-typedef struct keyboard_buffer{
+typedef struct keyboard_buffer {
     char *line;
     int length;
 };
@@ -37,7 +37,7 @@ int cur_line_counter;
 char lines[25][80];
 
 char current_buffer[128];
-int curr_buff_length=0;
+int curr_buff_length = 0;
 
 int is_alpha(int scan_code);
 
@@ -67,40 +67,41 @@ void keyboard_handler_init() {
     key_tracker.shift = 0;
     key_tracker.ctrl = 0;
     key_tracker.alt = 0;
-    cur_line_counter=get_screen_y();
-    int i=0,j=0;
-    for(i=0;i<25;i++)
-    {
-        onscreen_buff[i].line=lines[i];
-        onscreen_buff[i].length=0;
-        for(j=0;j<80;j++)
+
+    cur_line_counter = get_screen_y();
+    int i = 0, j = 0;
+    for(i = 0; i < 25; i++) {
+        onscreen_buff[i].line = lines[i];
+        onscreen_buff[i].length = 0;
+        for(j = 0; j < 80; j++)
         {
             onscreen_buff[i].line[j]=' ';
         }
     }
 
- 
     return; 
 }
 
 void scrolling()
 {
-            int y = get_screen_y();
-            set_screen(0,y+1);
-            clear();
-            int a,b;
-            for(b=1;b<=cur_line_counter;b++)
-            {
-                for(a=0;a<onscreen_buff[b].length;a++)
-                {
-                    onscreen_buff[b-1].line[a]=onscreen_buff[b].line[a];
-                    putc(onscreen_buff[b].line[a]);
-                }
-                onscreen_buff[b-1].length=onscreen_buff[b].length;
-                putc('\n');
-            }
-            onscreen_buff[cur_line_counter].length=0;
-            set_screen(0,y);
+    int y = get_screen_y();
+    set_screen(0, y + 1);
+    clear();
+    int a, b;
+    for(b = 1; b <= cur_line_counter; b++)
+    {
+        for(a = 0; a < onscreen_buff[b].length; a++)
+        {
+            onscreen_buff[b - 1].line[a] = onscreen_buff[b].line[a];
+            putc(onscreen_buff[b].line[a]);
+        }
+
+        onscreen_buff[b-1].length = onscreen_buff[b].length;
+        putc('\n');
+    }
+
+    onscreen_buff[cur_line_counter].length = 0;
+    set_screen(0, y);
 }
 
 /* 
@@ -158,11 +159,12 @@ void keyboard_handler() {
     if(key_tracker.ctrl && scan_code == 38) {
         clear();
         set_screen(0, 0);
-        cur_line_counter=0;
-        curr_buff_length=0;
+        cur_line_counter = 0;
+        curr_buff_length = 0;
         send_eoi(IRQ_LINE_KEYBOARD);
         return; 
     }
+
     if(scan_code == 14) 
     {
         int x = get_screen_x();
@@ -170,12 +172,12 @@ void keyboard_handler() {
         int linear = y * 80 + x;
         linear--;
         
-        if(linear < 0 || (((linear+1) % 80) ==0 && curr_buff_length<80)) {
+        if(linear < 0 || (((linear + 1) % 80) == 0 && curr_buff_length < 80)) {
             send_eoi(IRQ_LINE_KEYBOARD);
             return;  
         }
 
-        if(x==0)cur_line_counter--;
+        if(x == 0) cur_line_counter--;
 
         set_screen(linear % 80, linear / 80);
         putc(' ');
@@ -191,14 +193,14 @@ void keyboard_handler() {
     if(scan_code == 28) {        
         if(cur_line_counter >= 24) {
             scrolling();
-            curr_buff_length=0;
+            curr_buff_length = 0;
             send_eoi(IRQ_LINE_KEYBOARD); 
             return;
         }
         else
         {
             cur_line_counter++;
-            curr_buff_length=0;
+            curr_buff_length = 0;
             putc('\n');
             send_eoi(IRQ_LINE_KEYBOARD); 
             return;
@@ -210,7 +212,7 @@ void keyboard_handler() {
     if(!is_alpha(scan_code)) caps_idx = key_tracker.shift;
     to_print = key_map[caps_idx][scan_code];
 
-    if (curr_buff_length==80)
+    if (curr_buff_length == 80)
     {
         putc('\n');
         // if(cur_line_counter==24)scrolling();
@@ -224,18 +226,18 @@ void keyboard_handler() {
     //     return;
     // }
     // write character to the screen
-    if(curr_buff_length>=127)
+    if(curr_buff_length >= 127)
     {
         send_eoi(IRQ_LINE_KEYBOARD); 
 
         return;
     }
 
-    onscreen_buff[cur_line_counter].line[onscreen_buff[cur_line_counter].length]=to_print;
-    current_buffer[curr_buff_length]=to_print;
+    onscreen_buff[cur_line_counter].line[onscreen_buff[cur_line_counter].length] = to_print;
+    current_buffer[curr_buff_length] = to_print;
     
     curr_buff_length++;
-    onscreen_buff[cur_line_counter].length+=1;
+    onscreen_buff[cur_line_counter].length += 1;
 
     //printf("%d\n",scan_code);
     putc(to_print);
@@ -244,5 +246,25 @@ void keyboard_handler() {
     send_eoi(IRQ_LINE_KEYBOARD); 
 
     return;
+}
+
+int32_t terminal_open (const uint8_t* filename) {
+    return 0;
+}
+
+int32_t terminal_close (int32_t fd) {
+    if(fd == 0 || fd == 1) return -1;
+    return 0;
+}
+
+int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes) {
+    // length? is null terminated?
+    memcpy(buf, current_buffer, 128);
+    return 0;
+}
+
+int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes) {
+
+    return 0;
 }
 

@@ -1,8 +1,10 @@
 #include "tests.h"
 #include "x86_desc.h"
 #include "lib.h"
+#include "fs.h"
+
 #include "rtc.h"	
-#include "keyboard.h"	
+#include "keyboard.h"
 
 #define PASS 1
 #define FAIL 0
@@ -78,10 +80,10 @@ int page_test() {
 
 	int *testval;
 
-	//testval = (int *)0xb7000;
-	//testval = (int *)0xb8001;
-	///testval = (int *)0x3FFFFF;
-	//testval = (int *)0x400001;
+	// testval = (int *)0xb7000;
+	// testval = (int *)0xb8001;
+	// testval = (int *)0x3FFFFF;
+	// testval = (int *)0x400001;
 	// testval = (int *)0x800001;
 	*testval = 5;
 	return result;
@@ -118,15 +120,87 @@ int rtc_test() {
 }
 
 /* Checkpoint 2 tests */
+int fs_test_read_dir() {
+	set_screen(0,0);
+    int i = 0;
+    for(i = 0; i < 63; i++){
+
+        uint8_t* buf;
+        uint8_t buff[32];
+        buf = buff;
+
+        int test_directory_read_val = directory_read(i, buf, 0);
+		// not required...
+		test_directory_read_val++;
+
+        printf("File Name: ");
+        int j = 32 - strlen((char*) buf);
+        while(j) {
+            putc(' ');
+            j--;
+        }
+
+        // print name
+        puts((char*) buf);
+        printf(", file type: %d", our_boot_block->dir_entries[i].file_type);
+
+        // print size
+        // create_boot_block(abn_ptr);
+        inode_ptr = abn_ptr + ABN_JUMP;
+        inode_ptr += ABN_JUMP*(our_boot_block->dir_entries[i].inode_number);
+        uint32_t inode_length = *(inode_ptr);
+        printf(", file size: %d", inode_length);
+        
+        putc('\n');
+    }
+
+	return PASS;
+}
+
+int fs_test_fopen() {
+	return PASS;
+}
+
+int fs_test_fclose() {
+	return PASS;
+}
+
+int fs_test_fread() {
+	const char* filename = "verylargetextwithverylongname.txt";
+    int cur_fd = fs_open((char*) filename);
+    set_screen(0,0);
+    uint8_t* buf;
+    uint8_t buff[512];
+    buf = buff;
+    
+	printf("READING THE FILE ATTEMPT 1: \n");
+	int fs_read_test_val = fs_read(cur_fd, buf, 512);
+    puts((char*)buff);
+    printf("\nReturn value for read: %d\n", fs_read_test_val);
+	printf("DONE FILE ATTEMPT 1\n");
+	
+	printf("READING THE FILE ATTEMPT 2: \n");
+	fs_read_test_val = fs_read(cur_fd, buf, 512);
+    printf("\nReturn value for read: %d\n", fs_read_test_val);
+	printf("DONE FILE ATTEMPT 1\n");
+
+	return PASS;
+}
+
+int fs_test_fwrite() {
+	return PASS;
+}
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
 
 /* Test suite entry point */
-void launch_tests() {
+void launch_tests() { 
 	// TEST_OUTPUT("idt_test", idt_test());
 	// TEST_OUTPUT("idt_exception_divide_by_zero", idt_exception_divide_by_zero());
-	// TEST_OUTPUT("PF Test", rtc_test());
-	rtc_test();
+	// TEST_OUTPUT("PF Test", page_test());
+	// TEST_OUTPUT("Read dir test", fs_test_read_dir());
+	// TEST_OUTPUT("Read file test", fs_test_fread());
 }
