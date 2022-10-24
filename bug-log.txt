@@ -69,3 +69,18 @@ File-system:
 - Symptom: -1>2
 - Difficulty: super hard, 45 minute
 - Solution: don't use uint with negative numbers in if statement
+
+RTC:
+- Symptom: The read/write test case was not working
+- Difficulty: medium, 30 minutes
+- Solution: forgot to set the flag back to 0 in the read function
+
+Keyboard:
+- Symptom: Memcopy was not working 
+- Difficulty: hard, 1 hour
+- Solution: I had to use memmove instead
+
+Terminal:
+- Symptom: terminal write wasn't working. only 1 line being printed
+- Difficulty: easy, 5 minutes
+- Solution: we needed to do mod by 80
