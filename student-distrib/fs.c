@@ -187,6 +187,8 @@ int32_t read_data (uint32_t inode, uint32_t offset, uint8_t* buf, uint32_t lengt
  */
 int32_t fs_read (int32_t fd, void* buf, int32_t nbytes){
 
+    if(buf == NULL) return -1;
+
     if(file_array[fd].flags == 0){
         printf("Invalid fd\n");
         return -1;
@@ -205,6 +207,7 @@ int32_t fs_read (int32_t fd, void* buf, int32_t nbytes){
  *   SIDE EFFECTS: 
  */
 int32_t fs_write (int32_t fd, const void* buf, int32_t nbytes){
+    printf("Read only file system\n");
     return -1;
 }
 

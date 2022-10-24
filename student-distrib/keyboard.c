@@ -38,7 +38,8 @@ char lines[25][80];
 
 volatile char current_buffer[128];
 volatile int curr_buff_length = 0;
-volatile int prev_curr_buff_length = 0;
+volatile int prev_curr_buff_length;
+
 volatile enter_pressed = 0;
 
 int is_alpha(int scan_code);
@@ -203,6 +204,7 @@ void keyboard_handler() {
         }
         else
         {
+            prev_curr_buff_length = curr_buff_length;
             cur_line_counter++;
             curr_buff_length = 0;
             putc('\n');
@@ -231,7 +233,7 @@ void keyboard_handler() {
     //     return;
     // }
     // write character to the screen
-    if(curr_buff_length >= 126)
+    if(curr_buff_length > 126)
     {
         send_eoi(IRQ_LINE_KEYBOARD); 
 
@@ -258,6 +260,7 @@ int32_t terminal_open (const uint8_t* filename) {
     set_screen(0, 0);
     cur_line_counter = 0;
     curr_buff_length = 0;
+    enter_pressed = 0;
     return 0;
 }
 
@@ -267,15 +270,31 @@ int32_t terminal_close (int32_t fd) {
 }
 
 int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes) {
+    
+    if(buf == NULL) return -1;
+
     enter_pressed = 0;
+    char eol[2] = "\n\0";
+
     while(enter_pressed != 1) {}
-    printf("Done\n");
-    // memcpy(buf, current_buffer, 128);
-    return 0;
+    char* buff = buf;
+    int bytes_read = 0;
+
+    if(nbytes > prev_curr_buff_length) {
+        memcpy(buf, current_buffer, prev_curr_buff_length);
+        memcpy(buff + prev_curr_buff_length, eol, 2);
+        bytes_read = prev_curr_buff_length + 1;
+    } else {
+        memcpy(buf, current_buffer, nbytes);
+        memcpy(buff + nbytes, eol, 2);
+        bytes_read = nbytes + 1;
+    }
+
+    return bytes_read;
 }
 
 int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes) {
-
+    
     return 0;
 }
 

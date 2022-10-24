@@ -302,8 +302,12 @@ int fs_test_fwrite() {
  */
 int terminal_test_read() {
 	int fd = terminal_open("terminal");
-	char buf[100];
-	terminal_read(fd, buf, 100);
+	
+	char buf[200];
+	int retval = terminal_read(fd, buf, 128);
+	puts(buf);
+	printf("Bytes read are %d\n", retval);
+
 	terminal_close(fd);
 	return PASS;
 }
@@ -321,11 +325,5 @@ void launch_tests() {
 
 	// TEST_OUTPUT("Read dir test", fs_test_read_dir());
 	// TEST_OUTPUT("Read file test", fs_test_fread());
-	// TEST_OUTPUT("Terminal read", terminal_test_read());
-	// fs_test_fwrite();
-	// TEST_OUTPUT("FS write", fs_test_fwrite());
-	// TEST_OUTPUT("FS open", fs_test_fopen());
-	// TEST_OUTPUT("FS Close", fs_test_fclose());
-	// rtc_test();
-	// rtc_test();
+	TEST_OUTPUT("Terminal read", terminal_test_read());
 }
