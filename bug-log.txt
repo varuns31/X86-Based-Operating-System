@@ -59,3 +59,13 @@ RTC:
 - Symptom: RTC compiling but test_interrupts not working
 - Difficulty: easy, 45 minute
 - Solution: Used the wrong port, 0x0C instead of 0x8C
+
+File-system:
+- Symptom: page fault 
+- Difficulty: hard, 45 minute
+- Solution: defined pointer without initialising to an actual object
+
+File-system:
+- Symptom: -1>2
+- Difficulty: super hard, 45 minute
+- Solution: don't use uint with negative numbers in if statement

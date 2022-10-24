@@ -11,6 +11,7 @@
 #include "paging.h"
 #include "keyboard.h"
 #include "rtc.h"
+#include "fs.h"
 
 #define RUN_TESTS
 
@@ -20,6 +21,11 @@ extern void paging_init();
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
+// used to file system
+uint32_t fs_mod_start;
+dentry_t test_dentry;
+// dentry_t test_dentry_1;
+
 /* Check if MAGIC is valid and print the Multiboot information structure
    pointed by ADDR. */
 void entry(unsigned long magic, unsigned long addr) {
@@ -28,6 +34,7 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Clear the screen. */
     clear();
+
 
     /* Am I booted by a Multiboot-compliant boot loader? */
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -57,6 +64,9 @@ void entry(unsigned long magic, unsigned long addr) {
         int mod_count = 0;
         int i;
         module_t* mod = (module_t*)mbi->mods_addr;
+        
+        fs_mod_start = mod->mod_start;
+
         while (mod_count < mbi->mods_count) {
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
@@ -157,9 +167,89 @@ void entry(unsigned long magic, unsigned long addr) {
     keyboard_handler_init();
     rtc_handler_init();
 
+    create_file_array(); 
+
+    create_boot_block(fs_mod_start);  
+
+    // /* Testing directory read*/
+    // set_screen(0,0);
+
+    // int i = 0;
+    // for(i = 0; i < 15; i++){
+
+    //     uint8_t* buf;
+    //     uint8_t buff[32];
+    //     buf=buff;
+
+    //     int test_directory_read_val = directory_read(i, buf, 0);
+
+    //     printf("File Name: ");
+    //     int j = 32 - strlen(buf);
+    //     while(j){
+    //         putc(' ');
+    //         j--;
+    //     }
+
+    //     // print name
+    //     puts(buf);
+    //     printf(", file type: %d", our_boot_block->dir_entries[i].file_type);
+
+    //     // print size
+    //     // create_boot_block(abn_ptr);
+    //     inode_ptr = abn_ptr + ABN_JUMP;
+    //     inode_ptr += ABN_JUMP*(our_boot_block->dir_entries[i].inode_number);
+    //     uint32_t inode_length = *(inode_ptr);
+    //     printf(", file size: %d", inode_length);
+        
+    //     putc('\n');
+    // }
+
+
+    // /* Testing file open and read*/
+    // int cur_fd = fs_open("verylargetextwithverylongname.txt");
+
+    // set_screen(0,0);
+
+    // uint8_t* buf;
+    // uint8_t buff[512];
+    // buf=buff;
+    // // const unsigned int test_inode_num = 44;
+    // int fs_read_test_val = fs_read(cur_fd,buf,512);
+    // puts((char*)buff);
+    // printf("\nReturn value for read: %d\n", fs_read_test_val);
+
+    // /*Testing close and read*/
+    // int fs_close_ret_val = fs_close(cur_fd);
+    // printf("Return value for close: %d\n", fs_close_ret_val);
+
+    // uint8_t* buf2;
+    // uint8_t buf2f[512];
+    // buf2=buf2f;
+    // printf("Trying to read closed file:\n");
+    // fs_read_test_val = fs_read(cur_fd,buf2,174);
+    // printf("Return value for read: %d\n", fs_read_test_val);
+    // puts((char*)buf2f);
 
 
 
+    // int32_t test_val = read_dentry_by_name("verylargetextwithverylongname.txt", &test_dentry);
+    // printf("Testing read_dentry_by_name\n");
+    // puts(test_dentry.file_name);
+    // printf("\n  Inode Number: %d", test_dentry.inode_number);
+
+    // set_screen(0,0);
+    // uint8_t* buf;
+    // uint8_t buff[512];
+    // buf=buff;
+    // const unsigned int test_inode_num = 47;
+    // int test_val = read_data(test_inode_num,0,buf,174);
+    // puts((char*)buff);
+    // printf("%d", test_val);
+
+    // int32_t test_val = read_dentry_by_index(2, &test_dentry);
+    // printf("Testing read_dentry_by_index\n");
+    // puts(test_dentry.file_name);
+    // printf("\n  Return value: %d", test_val);
 
     /*RTC TESTING*/
     // unsigned int val = 16;
