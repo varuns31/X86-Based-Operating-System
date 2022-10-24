@@ -123,7 +123,7 @@ int rtc_test() {
 int fs_test_read_dir() {
 	set_screen(0,0);
     int i = 0;
-    for(i = 0; i < 63; i++){
+    for(i = 0; i < 10; i++){
 
         uint8_t* buf;
         uint8_t buff[32];
@@ -181,13 +181,27 @@ int fs_test_fread() {
 	
 	printf("READING THE FILE ATTEMPT 2: \n");
 	fs_read_test_val = fs_read(cur_fd, buf, 512);
+	puts((char*)buff);
     printf("\nReturn value for read: %d\n", fs_read_test_val);
-	printf("DONE FILE ATTEMPT 1\n");
+	printf("DONE FILE ATTEMPT 2\n");
 
 	return PASS;
 }
 
 int fs_test_fwrite() {
+	return PASS;
+}
+
+int terminal_test_read() {
+
+	int fd = terminal_open("terminal");
+	
+	char buf[100];
+
+	terminal_read(fd, buf, 100);
+	
+	terminal_close(fd);
+	
 	return PASS;
 }
 
@@ -201,6 +215,8 @@ void launch_tests() {
 	// TEST_OUTPUT("idt_test", idt_test());
 	// TEST_OUTPUT("idt_exception_divide_by_zero", idt_exception_divide_by_zero());
 	// TEST_OUTPUT("PF Test", page_test());
+
 	// TEST_OUTPUT("Read dir test", fs_test_read_dir());
 	// TEST_OUTPUT("Read file test", fs_test_fread());
+	// TEST_OUTPUT("Terminal read", terminal_test_read());
 }
