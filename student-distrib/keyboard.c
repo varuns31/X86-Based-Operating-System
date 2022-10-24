@@ -32,7 +32,7 @@ int cur_line_counter;
 volatile char current_buffer[128];
 volatile int curr_buff_length = 0;
 volatile int prev_curr_buff_length;
-volatile enter_pressed = 0;
+volatile int enter_pressed = 0;
 
 int is_alpha(int scan_code);
 
@@ -250,12 +250,12 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes) {
     int bytes_read = 0;
 
     if(nbytes > prev_curr_buff_length) {
-        memcpy(buf, current_buffer, prev_curr_buff_length);
-        memcpy(buff + prev_curr_buff_length, eol, 2);
+        memcpy((void*)buf, (void*)current_buffer, prev_curr_buff_length);
+        memcpy((void*)(buff + prev_curr_buff_length),(void*) eol, 2);
         bytes_read = prev_curr_buff_length + 1;
     } else {
-        memcpy(buf, current_buffer, nbytes);
-        memcpy(buff + nbytes, eol, 2);
+        memcpy((void*)buf, (void*)current_buffer, nbytes);
+        memcpy((void*)(buff + nbytes), (void*)eol, 2);
         bytes_read = nbytes + 1;
     }
 
@@ -265,7 +265,7 @@ int32_t terminal_read (int32_t fd, void* buf, int32_t nbytes) {
 int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes) {
     if(buf == NULL) return -1;
     int i;
-    char* buff = buf;
+    const char* buff = buf;
     for(i = 0; i < nbytes; i++) {
         if(i > 80 && get_screen_y() >= 24) {
             scrolling();
@@ -274,7 +274,7 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes) {
             cur_line_counter++;
         }
 
-        if(buff[i] == "\0") continue;
+        if(buff[i] == '\0') continue;
         putc(buff[i]);
     }
     return nbytes;
@@ -302,12 +302,12 @@ int32_t keyboard_read (int32_t fd, void* buf, int32_t nbytes) {
     int bytes_read = 0;
 
     if(nbytes > prev_curr_buff_length) {
-        memcpy(buf, current_buffer, prev_curr_buff_length);
-        memcpy(buff + prev_curr_buff_length, eol, 2);
+        memcpy((void*)buf, (void*)current_buffer, prev_curr_buff_length);
+        memcpy((void*)(buff + prev_curr_buff_length), (void*)eol, 2);
         bytes_read = prev_curr_buff_length + 1;
     } else {
-        memcpy(buf, current_buffer, nbytes);
-        memcpy(buff + nbytes, eol, 2);
+        memcpy((void*)buf, (void*)current_buffer, nbytes);
+        memcpy((void*)(buff + nbytes), (void*)eol, 2);
         bytes_read = nbytes + 1;
     }
 
