@@ -210,7 +210,7 @@ void putc(uint8_t c) {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        if(screen_x==80)
+        if(screen_x==80 && screen_y >= NUM_ROWS)
         {
             scrolling1();
         }

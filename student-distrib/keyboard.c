@@ -79,19 +79,19 @@ void keyboard_handler_init() {
     return; 
 }
 
-void scrolling() {
-    int y = get_screen_y();
+// void scrolling() {
+//     int y = get_screen_y();
     
-    char* video_mem = (char *)VIDEO_START;
-    memmove(video_mem, video_mem + ((80 * 1 + 0) << 1), 160 * 24);//80 is the length of a line and its shifted by two to get location of 2nd line and size is numrows*numcolumns*2
-    int32_t i;
-    for (i = 0; i < 80; i++) {//80 is numrows
-        *(uint8_t *)(video_mem + ((24 * 80 + i) << 1)) = ' ';//clear last row
-        *(uint8_t *)(video_mem + ((24 * 80 + i) << 1) + 1) = 0x3;//attribute of last row
-    }
+//     char* video_mem = (char *)VIDEO_START;
+//     memmove(video_mem, video_mem + ((80 * 1 + 0) << 1), 160 * 24);//80 is the length of a line and its shifted by two to get location of 2nd line and size is numrows*numcolumns*2
+//     int32_t i;
+//     for (i = 0; i < 80; i++) {//80 is numrows
+//         *(uint8_t *)(video_mem + ((24 * 80 + i) << 1)) = ' ';//clear last row
+//         *(uint8_t *)(video_mem + ((24 * 80 + i) << 1) + 1) = 0x3;//attribute of last row
+//     }
     
-    set_screen(0, y);
-}
+//     set_screen(0, y);
+// }
 
 /* 
  * keyboard_handler
@@ -181,7 +181,6 @@ void keyboard_handler() {
 
     if(scan_code == 28) {       //enter opcode 
         if(cur_line_counter >= 24) {//24 is last line
-            scrolling();
             prev_curr_buff_length = curr_buff_length;
             curr_buff_length = 0;
             enter_pressed = 1;
@@ -208,10 +207,6 @@ void keyboard_handler() {
     if (curr_buff_length == 80)//80 is numrows
     {
         if(cur_line_counter>=24)//24 is numcols
-        {
-            scrolling();
-        }
-        else
         {
             putc('\n');
             cur_line_counter++;
@@ -311,9 +306,7 @@ int32_t terminal_write (int32_t fd, const void* buf, int32_t nbytes) {
     int i;
     const char* buff = buf;
     for(i = 0; i < nbytes; i++) {
-        if(i > 80 && get_screen_y() >= 24) {//80 is numrows
-            scrolling();
-        } else if(i % 80 == 0 && i != 0) {//80 is numrows
+        if(i % 80 == 0 && i != 0) {//80 is numrows
             putc('\n');
             cur_line_counter++;
         }
