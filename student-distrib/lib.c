@@ -12,6 +12,21 @@ static int screen_x;
 static int screen_y;
 static char* video_mem = (char *)VIDEO;
 
+
+void scrolling1() {
+    int y = get_screen_y();
+    
+    char* video_mem = (char *)VIDEO;
+    memmove(video_mem, video_mem + ((80 * 1 + 0) << 1), 160 * 24);//80 is the length of a line and its shifted by two to get location of 2nd line and size is numrows*numcolumns*2
+    int32_t i;
+    for (i = 0; i < 80; i++) {//80 is numrows
+        *(uint8_t *)(video_mem + ((24 * 80 + i) << 1)) = ' ';//clear last row
+        *(uint8_t *)(video_mem + ((24 * 80 + i) << 1) + 1) = 0x3;//attribute of last row
+    }
+    
+    set_screen(0, y);
+}
+
 void set_screen(int x, int y) {
     screen_x = x;
     screen_y = y;
@@ -182,13 +197,23 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        if(screen_y >= NUM_ROWS) screen_y = 0;
+        if(screen_y >= NUM_ROWS)
+        {
+            scrolling1();
+        }
+        else
+        {
+            screen_y++;
+        }
         screen_x = 0;
     } else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
+        if(screen_x==80)
+        {
+            scrolling1();
+        }
         screen_x %= NUM_COLS;
         screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
     }
