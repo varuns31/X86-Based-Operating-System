@@ -267,16 +267,34 @@ int32_t fs_open (const uint8_t* filename){
     }
 
     // for CP3.2, we will just use the first available fd which is 2
-    int fd_idx = 2;
+    int fd_idx;
+    for(fd_idx = 2; fd_idx < 8; fd_idx++){
+        if(file_array[fd_idx].inode_num == temp_dentry.inode_number && temp_dentry.inode_number != 0){
+            puts(filename);
+            printf(" file has already been opened\n");
+            return -1;
+        }
+        if(file_array[fd_idx].flags == 0){
+            // set the file array at specified location
+            puts(filename);
+            printf(" has been opened at position %d\n", fd_idx);
+            file_array[fd_idx].inode_num = temp_dentry.inode_number;
+            file_array[fd_idx].table_ptr = 0 ; // set to jmp table that we make later
+            file_array[fd_idx].file_pos = fd_idx;
+            file_array[fd_idx].flags = 1; // indicated in use
+            return fd_idx;
+        }
+    }
 
-    // set the file array at specified location
-    file_array[fd_idx].inode_num = temp_dentry.inode_number;
-    file_array[fd_idx].table_ptr = 0 ; // set to jmp table that we make later
-    file_array[fd_idx].file_pos = fd_idx;
-    file_array[fd_idx].flags = 1; // indicated in use
+    //    if(strncmp(filename, temp_dentry.file_name, strlen(filename)) == 0){
+    //         puts(filename);
+    //         printf(" file has already been opened\n");
+    //         return -1;
+    //     }
 
-    // return the idx correctly
-    return fd_idx;
+
+    printf("Error: Too many files are open\n");
+    return -1;
 }
 
 /* 

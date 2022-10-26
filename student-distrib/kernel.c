@@ -173,6 +173,22 @@ void entry(unsigned long magic, unsigned long addr) {
 
     create_boot_block(fs_mod_start);  
 
+    // /* Testing fs open and close */
+
+    // fs_open((uint8_t*) "cat");
+    // fs_open((uint8_t*) "counter");
+    // fs_open((uint8_t*) "fish");
+    // fs_open((uint8_t*) "grep");
+    // fs_open((uint8_t*) "counter");
+    // fs_open((uint8_t*) "fish");
+    // fs_open((uint8_t*) "hello");
+    // fs_open((uint8_t*) "ls");
+    // fs_open((uint8_t*) "shell");
+    // fs_open((uint8_t*) "frame1.txt");
+    // fs_close (4);
+    // fs_open((uint8_t*) "counter");
+    // fs_open((uint8_t*) "frame0.txt");
+
     /* Testing directory read*/
     // set_screen(0,0);
 
