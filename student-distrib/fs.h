@@ -1,4 +1,4 @@
-#ifndef FS_H
+    #ifndef FS_H
 #define FS_H
 
 #include "lib.h"
@@ -52,6 +52,7 @@ typedef struct __attribute__ ((packed))
     uint32_t flags;
 }  fd_node;
 
+extern fd_node file_array[FILE_ARRAY_SIZE]; 
 
 extern int32_t read_dentry_by_name (const uint8_t* fname, dentry_t * dentry);
 

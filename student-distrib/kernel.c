@@ -188,6 +188,7 @@ void entry(unsigned long magic, unsigned long addr) {
     // fs_close (4);
     // fs_open((uint8_t*) "counter");
     // fs_open((uint8_t*) "frame0.txt");
+    // printf("posidx of grep: %d \n",file_array[5].file_pos);
 
     /* Testing directory read*/
     // set_screen(0,0);

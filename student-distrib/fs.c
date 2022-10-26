@@ -257,11 +257,28 @@ int32_t fs_write (int32_t fd, const void* buf, int32_t nbytes){
  *   SIDE EFFECTS: 
  */
 int32_t fs_open (const uint8_t* filename){
-    // call read dentry by name
-    int32_t temp_val = read_dentry_by_name(filename, &temp_dentry);
-    
+
+    unsigned int flength = 0;
+    int pos_idx = 0;
+    char* cur_filename;
+    int cur_inode;
+
+    // get the length of the file or the max size of the file = 32
+    // iterate through the boot block to find the dentry that corresponds to the file
+    int i;
+    for(i = 0; i <= NUM_POSSIBLE_ENTRIES; i++){
+        uint8_t * cur_file = our_boot_block->dir_entries[i].file_name;
+        // check if the filename matches
+        if(!strncmp((int8_t*)cur_file,(int8_t*)filename, strlen(filename))){
+            // if it matches, copy the dentry to the input argument and return
+            cur_filename = our_boot_block->dir_entries[i].file_name;
+            cur_inode=our_boot_block->dir_entries[i].inode_number;
+            pos_idx=i;
+            break;
+        }
+    }
     // check for error condition
-    if(temp_val != 0){
+    if(i > NUM_POSSIBLE_ENTRIES){
         printf("Invalid filename\n");
         return -1;
     }
@@ -269,7 +286,7 @@ int32_t fs_open (const uint8_t* filename){
     // for CP3.2, we will just use the first available fd which is 2
     int fd_idx;
     for(fd_idx = 2; fd_idx < 8; fd_idx++){
-        if(file_array[fd_idx].inode_num == temp_dentry.inode_number && temp_dentry.inode_number != 0){
+        if(file_array[fd_idx].inode_num == cur_inode && cur_inode != 0){
             puts(filename);
             printf(" file has already been opened\n");
             return -1;
@@ -278,9 +295,9 @@ int32_t fs_open (const uint8_t* filename){
             // set the file array at specified location
             puts(filename);
             printf(" has been opened at position %d\n", fd_idx);
-            file_array[fd_idx].inode_num = temp_dentry.inode_number;
+            file_array[fd_idx].inode_num = cur_inode;
             file_array[fd_idx].table_ptr = 0 ; // set to jmp table that we make later
-            file_array[fd_idx].file_pos = fd_idx;
+            file_array[fd_idx].file_pos = pos_idx;
             file_array[fd_idx].flags = 1; // indicated in use
             return fd_idx;
         }
