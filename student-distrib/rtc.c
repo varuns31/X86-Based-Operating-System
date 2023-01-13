@@ -1,4 +1,7 @@
 #include "rtc.h"
+#include "pcb.h"
+#include "pit.h"
+#include "pcb.h"
 
 // the interrupt line mentioned by docs
 #define IRQ_LINE_RTC 0x08
@@ -17,9 +20,14 @@
 // rtc constants
 #define DEFAULT_RTC_RATE 15
 #define MAX_FREQ 32768
+#define MAX_QEMU_FREQ 1024
 #define MIN_FREQ 2
 
+#define COUNTER_MULTIPLIER 6.5 //6.5 is a magic number which we get because there are 3 terminals and pit handler makes the program slower
+
 volatile unsigned int rtc_flag = 0; 
+
+int max_counter;
 
 /* 
  * rtc_handler_init
@@ -57,8 +65,8 @@ void rtc_handler_init() {
 
 
     // rate is 1024 (2^(10-4))
-    rate = 6;
-
+    //max rate is 15 from OSdev for rtc virtualization.
+    rate = 5;
 
     // Register A setup
     // set register A index again
@@ -72,6 +80,8 @@ void rtc_handler_init() {
 
     // set botton 4 bits to rate
     outb((init_val & 0xF0) | rate, RTC_PORT_DATA); 
+
+    terminals[pit_curr_terminal].rtc_counter = 0;
 
     return; 
 }
@@ -113,7 +123,8 @@ void rtc_handler() {
     // flush the current value
     inb(RTC_PORT_DATA);
 
-    rtc_flag = 1;
+    //increment counter for virtualised rtc
+    terminals[pit_curr_terminal].rtc_counter += 1;
     
     send_eoi(IRQ_LINE_RTC);
 
@@ -132,8 +143,11 @@ void rtc_handler() {
  *   SIDE EFFECTS: none
  */
 int32_t rtc_read(int32_t fd, void* buf, int32_t nbytes){
-    while(!rtc_flag);
-    rtc_flag = 0;
+    
+    while((int)(terminals[pit_curr_terminal].rtc_counter * COUNTER_MULTIPLIER) != max_counter);
+    //reset counter for curr terminal
+    terminals[pit_curr_terminal].rtc_counter = 0;
+    memcpy(buf,(void*)& terminals[pit_curr_terminal].rtc_freq, sizeof(int));
     return 0;
 }
 
@@ -160,16 +174,8 @@ int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){
     if(frequency > MAX_FREQ || frequency < MIN_FREQ || frequency % 2 != 0)
         return -1;
 
-    unsigned int rate = 1;
-    unsigned int freq_count = MAX_FREQ;
-
-    // get the rate from frequency
-    while(freq_count != frequency){
-        rate++;
-        freq_count >>= 1;
-    }
-
-    rtc_handler_set_rate(rate);
+    terminals[pit_curr_terminal].rtc_freq = frequency;
+    max_counter = MAX_QEMU_FREQ / frequency;
 
     return 0;
 }
@@ -184,11 +190,25 @@ int32_t rtc_write (int32_t fd, const void* buf, int32_t nbytes){
  *   SIDE EFFECTS: rtc rate changed to default
  */
 int32_t rtc_open (const uint8_t* filename){
-    if(filename == NULL)
-        return -1;
-
-    rtc_handler_set_rate(DEFAULT_RTC_RATE);
-    return 0;
+    
+    pcb_t* pcb = (pcb_t *) find_pcb(curr_pid);
+    int fd_idx;
+    for(fd_idx = 2; fd_idx < 8; fd_idx++){
+        if(pcb->process_file_array[fd_idx].flags == 0){
+            // set the file array at specified location
+            pcb->process_file_array[fd_idx].inode_num = 0;
+            pcb->process_file_array[fd_idx].file_pos = 0;
+            pcb->process_file_array[fd_idx].flags = 1; // indicated in use
+            //set base values in terminals array for current pit terminal
+            terminals[pit_curr_terminal].rtc_fd = fd_idx;
+            terminals[pit_curr_terminal].rtc_freq = 0;
+            terminals[pit_curr_terminal].rtc_counter = 0;
+            
+            return fd_idx;
+        }
+    }
+    printf("Error: Too many files are open\n");
+    return -1;
 }
 
 /* 
@@ -200,8 +220,9 @@ int32_t rtc_open (const uint8_t* filename){
  *   RETURN VALUE: Trying to close an invalid descriptor should result in a return value of -1; successful closes should return 0.
  *   SIDE EFFECTS: closes rtc
  */
-int32_t close (int32_t fd){
+int32_t rtc_close (int32_t fd){
     if (fd == 0 || fd == 1) return -1;
+    //rtc_fd at max frequency means rtc is not open
+    terminals[pit_curr_terminal].rtc_fd = MAX_FREQ;
     return 0;
 }
-

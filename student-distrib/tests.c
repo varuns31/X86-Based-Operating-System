@@ -5,6 +5,21 @@
 
 #include "rtc.h"	
 #include "keyboard.h"
+#include "syscall_linkage.h"
+
+extern int32_t system_execute (const uint8_t* command);
+extern int32_t system_read (int32_t fd, void* buf, int32_t nbytes);
+extern int32_t system_write (int32_t fd, const void* buf, int32_t nbytes);
+extern int32_t system_close (uint32_t fd);
+
+// taken from ece391syscalls
+#define DO_CALL2(number)       \
+asm volatile ("                \
+    PUSHL	%EBX              ;\
+	MOVL	$" #number ",%EAX ;\
+	INT	$0x80             ;\
+1:	POPL	%EBX              ;\
+")
 
 #define PASS 1
 #define FAIL 0
@@ -62,7 +77,9 @@ int idt_test() {
  */
 int idt_exception_divide_by_zero() {
 	TEST_HEADER;
+	//Random Value for testing
 	int a = 1;
+	//Random Value for testing
 	int b = 0;
 	int c = a/b;
 	return c;
@@ -81,13 +98,24 @@ int page_test() {
 	int result = PASS;
 
 	int *testval;
+	// video memory from b8000 to b9000
+	// testval = (int*) 0xb7000; 
+	// testval = (int*) 0xb8001;
 
-	// testval = (int *)0xb7000;
-	// testval = (int *)0xb8001;
-	// testval = (int *)0x3FFFFF;
-	// testval = (int *)0x400001;
-	// testval = (int *)0x800001;
-	*testval = 5;
+	// kernel memory from 4MB to 8MB
+	// testval = (int*) 0x3FFFFF;  // outside
+	// testval = (int*) 0x400001;  // inside
+	// testval = (int*) 0x00800001; //outside 
+
+	// Program memory from 8MB to 12MB
+	// testval = (int*) 0x08048000;
+	// testval = (int*) 0x08400000;
+
+	//Random Value for testing
+	testval = (int*) 0x08048018;
+
+	//Random Value for testing
+	*testval = 1;     
 	return result;
 }
 
@@ -132,52 +160,6 @@ int rtc_test() {
 	return PASS;
 }
 
-/* fs_test_read_dir
- * 
- * Asserts that page fault works - boundaries of the pages
- * Inputs: None
- * Outputs: PASS/FAIL
- * Side Effects: None
- * Coverage: Load Pages/ Validation of pages
- * Files: paging.c/h, enable_paging.S
- */
-int fs_test_read_dir() {
-	set_screen(0,0);
-    int i = 0;
-    for(i = 0; i < 10; i++){
-
-        uint8_t* buf;
-        uint8_t buff[32];
-        buf = buff;
-
-        int test_directory_read_val = directory_read(i, buf, 0);
-		// not required...
-		test_directory_read_val++;
-
-        printf("File Name: ");
-        int j = 32 - strlen((char*) buf);
-        while(j) {
-            putc(' ');
-            j--;
-        }
-
-        // print name
-        puts((char*) buf);
-        printf(", file type: %d", our_boot_block->dir_entries[i].file_type);
-
-        // print size
-        // create_boot_block(abn_ptr);
-        inode_ptr = abn_ptr + ABN_JUMP;
-        inode_ptr += ABN_JUMP*(our_boot_block->dir_entries[i].inode_number);
-        uint32_t inode_length = *(inode_ptr);
-        printf(", file size: %d", inode_length);
-        
-        putc('\n');
-    }
-
-	return PASS;
-}
-
 /* fs_test_fopen
  * 
  * Asserts that fopen does not open an invalid file
@@ -194,9 +176,11 @@ int fs_test_fopen() {
 	// reset screen to start, create a buffer, and then read the file
 	set_screen(0, 0);
 	uint8_t* buf;
+	// random number
     uint8_t buff[512];
     buf = buff;
 
+	//Random Value for testing
 	if (fs_read(cur_fd, buf, 512) == -1){
 		return FAIL;
 	}
@@ -210,18 +194,20 @@ int fs_test_fopen() {
  * Inputs: None
  * Outputs: PASS/FAIL
  * Side Effects: none
- * Coverage: Reading / writing RTC 
- * Files: rtc.c/h
+ * Coverage: opening fs
+ * Files: fs.c/h
  */
 int fs_test_fclose() {
 	// open a file, reset screen, and create a buffer
     int cur_fd = fs_open((uint8_t*) "verylargetextwithverylongname.txt");
 	set_screen(0, 0);
 	uint8_t* buf;
+	// random number
     uint8_t buff[512];
     buf = buff;
 
 	// read and then close the file
+	// random number
 	fs_read(cur_fd, buf, 512);
 	fs_close(cur_fd);
 
@@ -235,27 +221,30 @@ int fs_test_fclose() {
 
 /* fs_test_fopen
  * 
- * Asserts that read / write works for RTC
+ * Asserts that read works for fs
  * Inputs: None
  * Outputs: PASS/FAIL
  * Side Effects: none
  * Coverage: Reading / writing RTC 
- * Files: rtc.c/h
+ * Files: fs.c/h
  */
 int fs_test_fread() {
     int cur_fd = fs_open((uint8_t*) "verylargetextwithverylongname.txt");
     set_screen(0,0);
     uint8_t* buf;
+	//Random Value for testing
     uint8_t buff[512];
     buf = buff;
     
 	printf("READING THE FILE ATTEMPT 1: \n");
+	//Random Value for testing
 	int fs_read_test_val = fs_read(cur_fd, buf, 512);
     puts((char*)buff);
     printf("\nReturn value for read: %d\n", fs_read_test_val);
 	printf("DONE FILE ATTEMPT 1\n");
 	
 	printf("READING THE FILE ATTEMPT 2: \n");
+	//Random Value for testing
 	fs_read_test_val = fs_read(cur_fd, buf, 512);
 	puts((char*)buff);
     printf("\nReturn value for read: %d\n", fs_read_test_val);
@@ -277,9 +266,11 @@ int fs_test_fwrite() {
     int cur_fd = fs_open((uint8_t*) "verylargetextwithverylongname.txt");
 	set_screen(0, 0);
 	uint8_t* buf;
+	//Random Value for testing
     uint8_t buff[512];
     buf = buff;
 
+	//Random Value for testing
 	if (fs_write (cur_fd, buf, 512) == 1){
 		return PASS;
 	}
@@ -298,8 +289,10 @@ int fs_test_fwrite() {
  */
 int terminal_test_read() {
 	int fd = terminal_open((uint8_t*) "terminal");
+	//Random Value for testing
 	char buf[200];
 	int retval;
+	//Random Value for testing
 	retval = terminal_read(fd, buf, 128);
 	puts(buf);
 	printf("Bytes read are %d\n", retval);
@@ -319,8 +312,10 @@ int terminal_test_read() {
  */
 int terminal_test_write() {
 	int fd = terminal_open((uint8_t*) "terminal");
+	//Random Value for testing
 	char buf[200] = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
 	int retval;
+	//Random Value for testing
 	retval = terminal_write(fd, buf, 100);
 	printf("Bytes written are %d\n", retval);
 	terminal_close(fd);
@@ -333,15 +328,18 @@ int terminal_test_write() {
  * Asserts that open for terminal works
  * Inputs: None
  * Outputs: PASS/FAIL
- * Side Effects: may change rtc frequency
+ * Side Effects: none
  * Coverage: Reading / writing keyboard.c/h
- * Files: 
+ * Files: keyboard.c/h
  */
 int terminal_test_read_write() {
 	int fd = terminal_open((uint8_t*) "terminal");
+	//Random Value for testing
 	char buf[200];
 	int retval;
+	//Random Value for testing
 	retval = terminal_read(fd, buf, 3);
+	//Random Value for testing
 	retval = terminal_write(fd, buf, 3);
 	terminal_close(fd);
 
@@ -349,21 +347,134 @@ int terminal_test_read_write() {
 }
 
 /* Checkpoint 3 tests */
-/* Checkpoint 4 tests */
-/* Checkpoint 5 tests */
 
+/* open_test
+ * 
+ * Description: open the test function
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: none
+ * Coverage: sys calls
+ * Files: syscall.c/h
+ */
+int open_test () {
+	// clear screen
+	set_screen(0, 0);
+	
+	// call open for #5 in syscall
+	DO_CALL2(5);
+	register int retVal asm("eax");
+	printf("Return value is %d\n", retVal);
+
+	// call open for #5 in syscall
+	DO_CALL2(5);
+	register int retVal2 asm("eax");
+	printf("Return value is %d\n", retVal2);
+
+	return PASS;
+}
+
+/* read_test
+ * 
+ * Description: read test case. open file, close file, read file
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: none
+ * Coverage: read for fs
+ * Files: fs.c/h
+ */
+int read_test () {
+	// clear screen
+	set_screen(0, 0);
+	
+	// call open
+	DO_CALL2(5);
+	register int retVal asm("eax");
+	uint32_t fd = retVal;
+	printf("Return value is %d\n", fd);
+
+	// create a buffer and then read it. 1000 is the size of the buffer
+	char buf[10000];
+	//Random Value for testing
+	system_read(fd, buf, 1000);
+	puts(buf);
+
+	// close the file
+	system_close(fd);
+
+	// then try to read it again. 1000 is the size of the buffer
+	system_read(fd, buf, 1000);
+
+	return PASS;
+}
+
+/* read_write_rtc
+ * 
+ * Description: try the read / write rtc function from system calls
+ * Inputs: None
+ * Outputs: PASS/FAIL
+ * Side Effects: may change rtc frequency
+ * Coverage: 
+ * Files: 
+ */
+int read_write_rtc () {
+	// clear screen
+	set_screen(0, 0);
+	
+	// call the open function
+	DO_CALL2(5);
+	register int retVal asm("eax");
+	uint32_t fd = retVal;
+	printf("Return value is %d\n", retVal);
+
+	// set screen to start
+	int freq, i;
+
+	// test all frequencies from 2 to 512 hz. Multiply by 2
+	for(freq = 2; freq <= 512; freq *= 2){
+		// create a buffer for frequency
+		int * test_rtc_buf = &freq;
+
+		// change the rtc freq to a specific rtc freq
+		system_write(fd, test_rtc_buf, sizeof(test_rtc_buf));
+
+		// print the characters each time an interrupt is fired. The number of chars printed will be equal to curr rtc freq
+		for(i = 0; i < freq; i++){
+			// there are a total of 80 chars in one line. if it we overflow start going to the next char
+			if (i % 80 == 0) putc('\n');
+
+			// once the interrupt has been fired print '1'
+			if (!system_read(fd, 0, 0)) putc('1');
+		}
+
+		// clear screen and reset its position
+		clear();
+		set_screen(0, 0);
+	}
+
+	return PASS;
+}
+
+/* Checkpoint 4 tests */
+
+/* Checkpoint 5 tests */
 
 /* Test suite entry point */
 void launch_tests() { 
 	// TEST_OUTPUT("idt_test", idt_test());
 	// TEST_OUTPUT("idt_exception_divide_by_zero", idt_exception_divide_by_zero());
-	// TEST_OUTPUT("PF Test", page_test());
+	//TEST_OUTPUT("PF Test", page_test());
 
 	// TEST_OUTPUT("Read dir test", fs_test_read_dir());
-	// TEST_OUTPUT("Read file test", fs_test_fread());
+	//TEST_OUTPUT("Read file test", fs_test_fread());
 
 	// TEST_OUTPUT("RTC test", rtc_test());
 	// TEST_OUTPUT("Terminal read", terminal_test_read());
 	// TEST_OUTPUT("Terminal write", terminal_test_write());
 	// TEST_OUTPUT("Terminal read write", terminal_test_read_write());
+
+	// TEST_OUTPUT("open test", open_test());
+	// TEST_OUTPUT("read test", read_test());
+	// TEST_OUTPUT("read test", read_write_rtc());
 }
+

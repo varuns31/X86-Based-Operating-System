@@ -84,3 +84,53 @@ Terminal:
 - Symptom: terminal write wasn't working. only 1 line being printed
 - Difficulty: easy, 5 minutes
 - Solution: we needed to do mod by 80
+
+Execute:
+- Symptom: Page Fault on calling 
+- Difficulty: hard, 4 hours
+- Solution: we did not update the current_pid while creating a new File
+
+Execute:
+- Symptom: Page Fault on calling execute
+- Difficulty: hard, 3 hours
+- Solution: Did not setup linkage correctly, needed to update program_eip with bits 24-27 of file
+
+ls:
+- Symptom: Not printing files
+- Difficulty: medium, 2 hours
+- Solution: We did not implement directory read correctly, needed to add filenames to buffer
+
+Halt:
+- Symptom: Failing on some syserror test cases
+- Difficulty: medium, 2 hours
+- Solution: Did not set curr_pid = parent_pid when exiting
+
+Get_Args:
+- Symptom: Page Faulting after opening file
+- Difficulty: medium, 2 hours
+- Solution: Because we did not keep track of the number of bytes read in read_data
+
+Vid_Map:
+- Symptom: Passing syserror but fish not working
+- Difficulty: hard, 3 hours
+- Solution: We did not set the page directory entry for the new vidmap page
+
+Scheduling:
+-Symptom : Page Fault in Halt
+-Difficulty: Hard 45 hours
+-Solution : Current ebp,esp by pit is different from the ebp,esp used when the process was first executed and halt needs that base ebp,esp 
+
+Scheduling:
+-Symptom : Page Fault Randomly
+-Difficulty: Medium 25 hours
+-Solution : tss.esp0 is base of kernel stack of the user program and not the current esp value
+
+Scheduling:
+-Symptom : Printing in random pages
+-Difficulty: Easy 65 hours 
+-Solution : Mantain different putc functions for keyboard and terminal_write and do paging correctly so that putc writes according to pit and keyboard writes according to visible screen
+
+Scheduling:
+-Symptom : Problems in execute when PIT interrupted in middle of execution
+-Difficulty: Hard 12 hours
+-Solution : Synchronize System Calls and other uninterruptable code 

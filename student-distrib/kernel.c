@@ -11,20 +11,27 @@
 #include "paging.h"
 #include "keyboard.h"
 #include "rtc.h"
+#include "pcb.h"
 #include "fs.h"
+#include "syscall.h"
+#include "mouse.h"
+#include "pit.h"
 
 #define RUN_TESTS
 
 void initIdtFunc();
 extern void paging_init();
+extern void process_paging();
+extern void init_pcbs();
 
 /* Macros. */
 /* Check if the bit BIT in FLAGS is set. */
 #define CHECK_FLAG(flags, bit)   ((flags) & (1 << (bit)))
 
-// used to file system
+// used for file system
 uint32_t fs_mod_start;
 dentry_t test_dentry;
+extern volatile int piano;
 
 // dentry_t test_dentry_1;
 
@@ -36,7 +43,6 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Clear the screen. */
     clear();
-
 
     /* Am I booted by a Multiboot-compliant boot loader? */
     if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
@@ -88,7 +94,7 @@ void entry(unsigned long magic, unsigned long addr) {
     }
 
     /* Is the section header table of ELF valid? */
-    if (CHECK_FLAG(mbi->flags, 5)) {
+    if (CHECK_FLAG(mbi->flags, 5)) { 
         elf_section_header_table_t *elf_sec = &(mbi->elf_sec);
         printf("elf_sec: num = %u, size = 0x%#x, addr = 0x%#x, shndx = 0x%#x\n",
                 (unsigned)elf_sec->num, (unsigned)elf_sec->size,
@@ -161,143 +167,41 @@ void entry(unsigned long magic, unsigned long addr) {
 
     /* Init the Paging */
     paging_init();
-    
+    mult_terminal_paging();
+
+    /* Setup for Execute */
+    curr_pid = -1;
+    init_pcbs();
+
     /* Initialize devices, memory, filesystem, enable device interrupts on the
      * PIC, any other initialization stuff... 
     */
     clear();
+
+    /* init drivers */
     keyboard_handler_init();
+    init_mouse();
     rtc_handler_init();
+    // piano = 1;
+    pit_init();
+    // piano_handler_init();
 
-    create_file_array(); 
+    /* init fs */
+    create_boot_block(fs_mod_start); 
 
-    create_boot_block(fs_mod_start);  
-
-    // /* Testing fs open and close */
-
-    // fs_open((uint8_t*) "cat");
-    // fs_open((uint8_t*) "counter");
-    // fs_open((uint8_t*) "fish");
-    // fs_open((uint8_t*) "grep");
-    // fs_open((uint8_t*) "counter");
-    // fs_open((uint8_t*) "fish");
-    // fs_open((uint8_t*) "hello");
-    // fs_open((uint8_t*) "ls");
-    // fs_open((uint8_t*) "shell");
-    // fs_open((uint8_t*) "frame1.txt");
-    // fs_close (4);
-    // fs_open((uint8_t*) "counter");
-    // fs_open((uint8_t*) "frame0.txt");
-    // printf("posidx of grep: %d \n",file_array[5].file_pos);
-
-    /* Testing directory read*/
-    // set_screen(0,0);
-
-    // int i = 0;
-    // for(i = 0; i < 15; i++){
-
-    //     uint8_t* buf;
-    //     uint8_t buff[32];
-    //     buf=buff;
-
-    //     int test_directory_read_val = directory_read(i, buf, 0);
-
-    //     printf("File Name: ");
-    //     int j = 32 - strlen(buf);
-    //     while(j){
-    //         putc(' ');
-    //         j--;
-    //     }
-
-    //     // print name
-    //     puts(buf);
-    //     printf(", file type: %d", our_boot_block->dir_entries[i].file_type);
-
-    //     // print size
-    //     // create_boot_block(abn_ptr);
-    //     inode_ptr = abn_ptr + ABN_JUMP;
-    //     inode_ptr += ABN_JUMP*(our_boot_block->dir_entries[i].inode_number);
-    //     uint32_t inode_length = *(inode_ptr);
-    //     printf(", file size: %d", inode_length);
-        
-    //     putc('\n');
-    // }
-
-
-    // /* Testing file open and read*/
-    // int cur_fd = fs_open("verylargetextwithverylongname.txt");
-
-    // set_screen(0,0);
-
-    // uint8_t* buf;
-    // uint8_t buff[512];
-    // buf=buff;
-    // // const unsigned int test_inode_num = 44;
-    // int fs_read_test_val = fs_read(cur_fd,buf,512);
-    // puts((char*)buff);
-    // printf("\nReturn value for read: %d\n", fs_read_test_val);
-
-    // /*Testing close and read*/
-    // int fs_close_ret_val = fs_close(cur_fd);
-    // printf("Return value for close: %d\n", fs_close_ret_val);
-
-    // uint8_t* buf2;
-    // uint8_t buf2f[512];
-    // buf2=buf2f;
-    // printf("Trying to read closed file:\n");
-    // fs_read_test_val = fs_read(cur_fd,buf2,174);
-    // printf("Return value for read: %d\n", fs_read_test_val);
-    // puts((char*)buf2f);
-
-
-
-    // int32_t test_val = read_dentry_by_name("verylargetextwithverylongname.txt", &test_dentry);
-    // printf("Testing read_dentry_by_name\n");
-    // puts(test_dentry.file_name);
-    // printf("\n  Inode Number: %d", test_dentry.inode_number);
-
-    // set_screen(0,0);
-    // uint8_t* buf;
-    // uint8_t buff[512];
-    // buf=buff;
-    // const unsigned int test_inode_num = 47;
-    // int test_val = read_data(test_inode_num,0,buf,174);
-    // puts((char*)buff);
-    // printf("%d", test_val);
-
-    // int32_t test_val = read_dentry_by_index(2, &test_dentry);
-    // printf("Testing read_dentry_by_index\n");
-    // puts(test_dentry.file_name);
-    // printf("\n  Return value: %d", test_val);
-
-    /*RTC TESTING*/
-    // unsigned int val = 16;
-    // unsigned int * test_rtc_buf = &val;
-
-    // int test_rtc_write = rtc_write(0, test_rtc_buf, sizeof(test_rtc_buf));
-
-    // unsigned int * test_rtc_filename = &val;
-    // int test_rtc_open = rtc_open(test_rtc_filename);
-
-
-
-
+    /* Tests for Execute */
+    set_screen(0, 0);
 
     /* Enable interrupts */
     sti();
-    
-    /* Do not enable the following until after you have set up your
-     * IDT correctly otherwise QEMU will triple fault and simple close
-     * without showing you any output */
-    /*printf("Enabling Interrupts\n");
-    sti();*/
 
 #ifdef RUN_TESTS
     /* Run tests */
     launch_tests();
 #endif
-    /* Execute the first program ("shell") ... */
-
     /* Spin (nicely, so we don't chew up cycles) */
+    // pit_curr_terminal = cur_terminal;
+    // video_mem = video_mem_keyboard;
+    // system_execute("shell");
     asm volatile (".1: hlt; jmp .1;"); 
 }

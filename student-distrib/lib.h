@@ -7,8 +7,13 @@
 
 #include "types.h"
 
+extern char* video_mem;
+extern char* video_mem_keyboard;
+extern int ATTRIB;
+
 int32_t printf(int8_t *format, ...);
 void putc(uint8_t c);
+extern void putc_keyboard(uint8_t c);
 int32_t puts(int8_t *s);
 int8_t *itoa(uint32_t value, int8_t* buf, int32_t radix);
 int8_t *strrev(int8_t* s);
@@ -17,6 +22,9 @@ void clear(void);
 void set_screen(int x, int y);
 int get_screen_x();
 int get_screen_y();
+void init_cursor();
+void disable_cursor();
+void set_cursor();
 
 void* memset(void* s, int32_t c, uint32_t n);
 void* memset_word(void* s, int32_t c, uint32_t n);
@@ -159,3 +167,4 @@ do {                                    \
 } while (0)
 
 #endif /* _LIB_H */
+

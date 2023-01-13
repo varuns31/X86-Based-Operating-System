@@ -2,6 +2,12 @@
 #include "lib.h"
 #include "init_idt.h"
 #include "driver_linkage.h"
+#include "syscall_linkage.h"
+#include "syscall.h"
+#include "pcb.h"
+#include "pit.h"
+
+# define SYSTEM_HALT_FLAG 69
 
  /* divideerror
  *   DESCRIPTION: exception handler for Divide by Zero Error
@@ -11,9 +17,9 @@
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void divideerror() {
-    clear();
-    printf(" There is a divide error");
-    while(1){}
+    printf("There is a divide error\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* singleStepInterrupt
@@ -24,9 +30,9 @@ void divideerror() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void singleStepInterrupt() {
-    clear();
-    printf(" There is a single step error");
-    while(1){}
+    printf("There is a single step error\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* nmi
@@ -37,9 +43,9 @@ void singleStepInterrupt() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void nmi() {
-    clear();
-    printf(" Non maskable interrupt");
-    while(1){}
+    printf("Non maskable interrupt\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* breakpoint
@@ -50,9 +56,9 @@ void nmi() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void breakpoint() {
-    clear();
-    printf(" There is a breakpoint error");
-    while(1){}
+    printf("There is a breakpoint error\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* overflow
@@ -63,9 +69,9 @@ void breakpoint() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void overflow() {
-    clear();
-    printf(" Overflow error");
-    while(1){}
+    printf("Overflow error\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* bound_range
@@ -76,9 +82,9 @@ void overflow() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void bound_range() {
-    clear();
-    printf(" Bound Range Exceeded");
-    while(1){}
+    printf("Bound Range Exceeded\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* invalidopcode
@@ -89,9 +95,9 @@ void bound_range() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void invalidopcode() {
-    clear();
-    printf(" Invalid Opcode Error");
-    while(1){}
+    printf("Invalid Opcode Error\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* CoprocessorNotAvailable
@@ -102,9 +108,9 @@ void invalidopcode() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void CoprocessorNotAvailable() {
-    clear();
-    printf(" Coprocessor is not available");
-    while(1){}
+    printf("Coprocessor is not available\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* DoubleFault
@@ -115,9 +121,9 @@ void CoprocessorNotAvailable() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void DoubleFault() {
-    clear();
-    printf(" Double Fault");
-    while(1){}
+    printf("Double Fault\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* CoprocessorSegmentOverrun
@@ -128,9 +134,9 @@ void DoubleFault() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void CoprocessorSegmentOverrun() {
-    clear();
-    printf(" Coprocessor Segment Overrun");
-    while(1){}
+    printf("Coprocessor Segment Overrun\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* InvalidTaskStateSegment
@@ -141,9 +147,9 @@ void CoprocessorSegmentOverrun() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void InvalidTaskStateSegment() {
-    clear();
-    printf(" Invalid Task State Segment");
-    while(1){}
+    printf("Invalid Task State Segment\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* Segmentnotpresent
@@ -154,9 +160,9 @@ void InvalidTaskStateSegment() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void Segmentnotpresent() {
-    clear();
-    printf(" Segment not present");
-    while(1){}
+    printf("Segment not present\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* StackSegmentFault
@@ -167,9 +173,9 @@ void Segmentnotpresent() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void StackSegmentFault() {
-    clear();
-    printf(" Stack Segment Fault");
-    while(1){}
+    printf("Stack Segment Fault\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* GeneralProtectionFault
@@ -180,9 +186,9 @@ void StackSegmentFault() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void GeneralProtectionFault() {
-    clear();
-    printf(" General Protection Fault");
-    while(1){}
+    printf("General Protection Fault\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* PageFault
@@ -193,9 +199,10 @@ void GeneralProtectionFault() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void PageFault() {
-    //clear();
-    printf(" Page Fault");
-    while(1){}
+    change_uvid_putc (cur_terminal, cur_terminal);
+    printf("Page Fault or a YOU FAULT HAHA!\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* x87FloatingPointException
@@ -206,9 +213,9 @@ void PageFault() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void x87FloatingPointException() {
-    clear();
-    printf(" x87 Floating Point Exception");
-    while(1){}
+    printf("x87 Floating Point Exception\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* AlignmentCheck
@@ -219,9 +226,9 @@ void x87FloatingPointException() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void AlignmentCheck() {
-    clear();
-    printf(" Alignment Check");
-    while(1){}
+    printf("Alignment Check\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* MachineCheck
@@ -232,9 +239,9 @@ void AlignmentCheck() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void MachineCheck() {
-    clear();
-    printf(" Machine Check");
-    while(1){}
+    printf("Machine Check\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* SIMDFloatingPointException
@@ -245,9 +252,9 @@ void MachineCheck() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void SIMDFloatingPointException() {
-    clear();
-    printf(" SIMD Floating-Point Exception");
-    while(1){}
+    printf("SIMD Floating-Point Exception\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* VirtualizationException
@@ -258,9 +265,9 @@ void SIMDFloatingPointException() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void VirtualizationException() {
-    clear();
-    printf(" Virtualization Exception");
-    while(1){}
+    printf("Virtualization Exception\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* ControlProtectionException
@@ -271,9 +278,9 @@ void VirtualizationException() {
  *   SIDE EFFECTS: Runs infinitely after giving error message
  */
 void ControlProtectionException() {
-    clear();
-    printf(" Control Protection Exception");
-    while(1){}
+    printf("Control Protection Exception\n");
+    /* SYSTEM_HALT_FLAG is a number decided by us to indicate the program was terminated by an exception */
+    system_halt(SYSTEM_HALT_FLAG);
 }
 
 /* initIdtFunc
@@ -288,20 +295,21 @@ void initIdtFunc()
     int i;
     for(i=0; i<NUM_VEC; i++) {
         idt[i].seg_selector = KERNEL_CS;
-        idt[i].reserved3 = 1;//Interrupt Gate Set
-        idt[i].reserved2 = 1;//Interrupt Gate Set
-        idt[i].reserved1 = 1;//Interrupt Gate Set
-        idt[i].reserved0 = 0;//Interrupt Gate Set
-        idt[i].size = 1;//32-bit values
-        idt[i].dpl = 0x0;//Only Kernel Access
-        idt[i].present = 0;//Not Present
-        if (i == 128) idt[i].dpl = 0x3;//System call can be called by user
-        if (i <= 21 || i == 33 || i == 40) idt[i].present = 1;//exceptions and keyboard and rtc present
+        idt[i].reserved3 = 1;               //Interrupt Gate Set
+        idt[i].reserved2 = 1;               //Interrupt Gate Set
+        idt[i].reserved1 = 1;               //Interrupt Gate Set
+        idt[i].reserved0 = 0;               //Interrupt Gate Set
+        idt[i].size = 1;                    //32-bit values
+        idt[i].dpl = 0x0;                   //Only Kernel Access
+        idt[i].present = 0;                 //Not Present
+        if (i == 128) idt[i].dpl = 0x3;     //System call can be called by user
+
+        //exceptions, keyboard, rtc, pit, system calls present 
+        if (i <= 21 || i == 33 || i == 40 || i == 32 || i == 128 || i == 44) idt[i].present = 1;  
+
     }
 
-    //Exceptions filled from 0-21
-    //keyboard at 0x21
-    //rtc at 0x28
+    // Exceptions filled from 0-21
     SET_IDT_ENTRY(idt[0], divideerror);
     SET_IDT_ENTRY(idt[1], singleStepInterrupt);
     SET_IDT_ENTRY(idt[2], nmi);
@@ -323,6 +331,14 @@ void initIdtFunc()
     SET_IDT_ENTRY(idt[19], SIMDFloatingPointException);
     SET_IDT_ENTRY(idt[20], VirtualizationException);
     SET_IDT_ENTRY(idt[21], ControlProtectionException);
+
+    // by the docs
+    SET_IDT_ENTRY(idt[32], pit_driver_linkage);
     SET_IDT_ENTRY(idt[33], keyboard_driver_linkage);
     SET_IDT_ENTRY(idt[40], rtc_driver_linkage);
+    SET_IDT_ENTRY(idt[44], mouse_driver_linkage);
+    
+    // by the docs
+    SET_IDT_ENTRY(idt[128], syscall_linkage);
 }
+

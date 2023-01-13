@@ -6,7 +6,8 @@
 #include "lib.h"
 
 # define PIC_OFFSET 8
-#define PIC_PORT_IDX 2
+# define PIC_PORT_IDX 2
+# define NEXT_PORT 1
 
 /* Interrupt masks to determine which interrupts are enabled and disabled */
 uint8_t master_mask; /* IRQs 0-7  */
@@ -27,28 +28,31 @@ void i8259_init(void) {
     slave_mask = 0xff;
 
     // commands for master
+    
+    // initialize PIC
     outb(ICW1, MASTER_8259_PORT);
-    // + 1 for accessing data port
-    outb(ICW2_MASTER, MASTER_8259_PORT + 0x01);
-    // + 1 for accessing data port
-    outb(ICW3_MASTER, MASTER_8259_PORT + 0x01);
-    // + 1 for accessing data port
-    outb(ICW4, MASTER_8259_PORT + 0x01);
+    outb(ICW2_MASTER, MASTER_8259_PORT + NEXT_PORT);
+
+    // Setting cascaded configuration using next port
+    outb(ICW3_MASTER, MASTER_8259_PORT + NEXT_PORT);
+    outb(ICW4, MASTER_8259_PORT + NEXT_PORT);
 
     // commands for slave
+    
+    // initialize PIC
     outb(ICW1, SLAVE_8259_PORT);
-    // + 1 for accessing data port
-    outb(ICW2_SLAVE, SLAVE_8259_PORT + 0x01);
-    // + 1 for accessing data port
-    outb(ICW3_SLAVE, SLAVE_8259_PORT + 0x01);
-    // + 1 for accessing data port
-    outb(ICW4, SLAVE_8259_PORT + 0x01);
+    outb(ICW2_SLAVE, SLAVE_8259_PORT + NEXT_PORT);
+
+    // Setting cascaded configuration using next port
+    outb(ICW3_SLAVE, SLAVE_8259_PORT + NEXT_PORT);
+    outb(ICW4, SLAVE_8259_PORT + NEXT_PORT);
 
     // push cached values
-    // + 1 for accessing data port
-    outb(master_mask, MASTER_8259_PORT + 0x01);
-    // + 1 for accessing data port
-    outb(slave_mask, SLAVE_8259_PORT + 0x01);
+    // setting mask for master
+    outb(master_mask, MASTER_8259_PORT + NEXT_PORT);
+
+    // setting mask for slave
+    outb(slave_mask, SLAVE_8259_PORT + NEXT_PORT);
     
     // enable secondary pic
     enable_irq(PIC_PORT_IDX);
@@ -69,16 +73,19 @@ void enable_irq(uint32_t irq_num) {
     if(irq_num < PIC_OFFSET) {
         // since 1 bit to be operated
         master_mask &= ~(0x01 << irq_num);
-        // + 1 for accessing data port
-        outb(master_mask, MASTER_8259_PORT + 0x01); 
+        
+        // accessing data port
+        outb(master_mask, MASTER_8259_PORT + NEXT_PORT); 
         return;
     }
 
     irq_num -= PIC_OFFSET;
+
     // since 1 bit to be operated
     slave_mask &= ~(0x01 << irq_num);
-    // + 1 for accessing data port
-    outb(slave_mask, SLAVE_8259_PORT + 0x01);
+
+    // Accessing data port
+    outb(slave_mask, SLAVE_8259_PORT + NEXT_PORT);
     
     return;
 }
@@ -96,16 +103,18 @@ void disable_irq(uint32_t irq_num) {
     if(irq_num < PIC_OFFSET) {
         // since 1 bit to be operated
         master_mask |= 0x01 << irq_num;
-        // + 1 for accessing data port
-        outb(master_mask, MASTER_8259_PORT + 0x01); 
+
+        // Accessing data port
+        outb(master_mask, MASTER_8259_PORT + NEXT_PORT); 
         return;
     }
 
     irq_num -= PIC_OFFSET;
     // since 1 bit to be operated
+
     slave_mask |= 0x01 << irq_num;
-    // + 1 for accessing data port
-    outb(slave_mask, SLAVE_8259_PORT + 0x01);
+    // Accessing data port
+    outb(slave_mask, SLAVE_8259_PORT + NEXT_PORT);
     
     return;
 }
@@ -131,3 +140,4 @@ void send_eoi(uint32_t irq_num) {
 
     return;
 }
+

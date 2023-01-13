@@ -2,15 +2,48 @@
  * vim:ts=4 noexpandtab */
 
 #include "lib.h"
+#include "pcb.h"
+#include "pit.h"
+#include "paging.h"
 
 #define VIDEO       0xB8000
 #define NUM_COLS    80
 #define NUM_ROWS    25
-#define ATTRIB      0x3
+
+int ATTRIB = 0X1E;
 
 static int screen_x;
 static int screen_y;
-static char* video_mem = (char *)VIDEO;
+char* video_mem = (char *)VIDEO;
+char* video_mem_keyboard = (char *)VIDEO;
+
+void init_cursor() {
+    outb(0x0A, 0x3D4);
+	outb((inb(0x3D5) & 0xC0) | 0, 0x3D5);
+	outb(0x0B, 0x3D4);
+	outb((inb(0x3D5) & 0xE0) | 24, 0x3D5);
+}
+
+void disable_cursor() {
+    outb(0x0A, 0x3D4);
+	outb(0x20, 0x3D5);
+}
+
+void set_cursor() {
+    uint16_t pos = screen_y * NUM_COLS + screen_x;
+    outb(0x0F, 0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);
+    outb(0x0E, 0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+}
+
+void set_cursor_mouse(int x, int y) {
+    uint16_t pos = y * NUM_COLS + x;
+    outb(0x0F, 0x3D4);
+	outb((uint8_t) (pos & 0xFF), 0x3D5);
+    outb(0x0E, 0x3D4);
+	outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+}
 
 void set_screen(int x, int y) {
     screen_x = x;
@@ -32,9 +65,189 @@ int get_screen_y() {
 void clear(void) {
     int32_t i;
     for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
-        *(uint8_t *)(video_mem + (i << 1)) = ' ';
-        *(uint8_t *)(video_mem + (i << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem_keyboard + (i << 1)) = ' ';
+        *(uint8_t *)(video_mem_keyboard + (i << 1) + 1) = ATTRIB;
     }
+    set_cursor();
+}
+
+int ceil(float a)
+{
+    if(a > (int)( a / 1 ))
+    {
+        return a+1;
+    }
+    else
+    return a;
+}
+
+/* void changecolor(attrib);
+ * Inputs: void
+ * Return Value: none
+ * Function: Clears video memory */
+void changecolor(int attribute) {
+    int32_t i;
+    for (i = 0; i < NUM_ROWS * NUM_COLS; i++) {
+        *(uint8_t *)(video_mem_keyboard + (i << 1) + 1) = attribute;
+    }
+    set_cursor();
+    ATTRIB = attribute;
+}
+
+/* scrolling
+ * Inputs: video_mem_scroll - position of start of video memory to scoll
+ * Return Value: none
+ * Function: Clears video memory */
+void scrolling(char* video_mem_scroll) {
+    int y = screen_y;
+    //80 is the length of a line and its shifted by two to get location of 2nd line and size is numrows*numcolumns*2 (2 bytes for 1 pixel)
+    memmove(video_mem_scroll, video_mem_scroll + ((NUM_COLS * 1 + 0) << 1), NUM_COLS * 2 * (NUM_ROWS - 1));
+    int32_t i;
+    for (i = 0; i < NUM_COLS; i++) {//80 is numrows
+        *(uint8_t *)(video_mem_scroll + (((NUM_ROWS - 1) * NUM_COLS + i) << 1)) = ' ';//clear last row
+        *(uint8_t *)(video_mem_scroll + (((NUM_ROWS - 1) * NUM_COLS + i) << 1) + 1) = ATTRIB;//attribute of last row
+    }
+    
+    screen_y = y;
+}
+
+/* int32_t puts(int8_t* s);
+ *   Inputs: int_8* s = pointer to a string of characters
+ *   Return Value: Number of bytes written
+ *    Function: Output a string to the console */
+int32_t puts_keyboard(int8_t* s) {
+    register int32_t index = 0;
+    while (s[index] != '\0') {
+        putc_keyboard(s[index]);
+        index++;
+    }
+    return index;
+}
+
+/* Standard printf().
+ * Only supports the following format strings:
+ * %%  - print a literal '%' character
+ * %x  - print a number in hexadecimal
+ * %u  - print a number as an unsigned integer
+ * %d  - print a number as a signed integer
+ * %c  - print a character
+ * %s  - print a string
+ * %#x - print a number in 32-bit aligned hexadecimal, i.e.
+ *       print 8 hexadecimal digits, zero-padded on the left.
+ *       For example, the hex number "E" would be printed as
+ *       "0000000E".
+ *       Note: This is slightly different than the libc specification
+ *       for the "#" modifier (this implementation doesn't add a "0x" at
+ *       the beginning), but I think it's more flexible this way.
+ *       Also note: %x is the only conversion specifier that can use
+ *       the "#" modifier to alter output. */
+int32_t printf_keyboard(int8_t *format, ...) {
+
+    /* Pointer to the format string */
+    int8_t* buf = format;
+
+    /* Stack pointer for the other parameters */
+    int32_t* esp = (void *)&format;
+    esp++;
+
+    while (*buf != '\0') {
+        switch (*buf) {
+            case '%':
+                {
+                    int32_t alternate = 0;
+                    buf++;
+
+format_char_switch:
+                    /* Conversion specifiers */
+                    switch (*buf) {
+                        /* Print a literal '%' character */
+                        case '%':
+                            putc_keyboard('%');
+                            break;
+
+                        /* Use alternate formatting */
+                        case '#':
+                            alternate = 1;
+                            buf++;
+                            /* Yes, I know gotos are bad.  This is the
+                             * most elegant and general way to do this,
+                             * IMHO. */
+                            goto format_char_switch;
+
+                        /* Print a number in hexadecimal form */
+                        case 'x':
+                            {
+                                int8_t conv_buf[64];
+                                if (alternate == 0) {
+                                    itoa(*((uint32_t *)esp), conv_buf, 16);
+                                    puts_keyboard(conv_buf);
+                                } else {
+                                    int32_t starting_index;
+                                    int32_t i;
+                                    itoa(*((uint32_t *)esp), &conv_buf[8], 16);
+                                    i = starting_index = strlen(&conv_buf[8]);
+                                    while(i < 8) {
+                                        conv_buf[i] = '0';
+                                        i++;
+                                    }
+                                    puts_keyboard(&conv_buf[starting_index]);
+                                }
+                                esp++;
+                            }
+                            break;
+
+                        /* Print a number in unsigned int form */
+                        case 'u':
+                            {
+                                int8_t conv_buf[36];
+                                itoa(*((uint32_t *)esp), conv_buf, 10);
+                                puts_keyboard(conv_buf);
+                                esp++;
+                            }
+                            break;
+
+                        /* Print a number in signed int form */
+                        case 'd':
+                            {
+                                int8_t conv_buf[36];
+                                int32_t value = *((int32_t *)esp);
+                                if(value < 0) {
+                                    conv_buf[0] = '-';
+                                    itoa(-value, &conv_buf[1], 10);
+                                } else {
+                                    itoa(value, conv_buf, 10);
+                                }
+                                puts_keyboard(conv_buf);
+                                esp++;
+                            }
+                            break;
+
+                        /* Print a single character */
+                        case 'c':
+                            putc_keyboard((uint8_t) *((int32_t *)esp));
+                            esp++;
+                            break;
+
+                        /* Print a NULL-terminated string */
+                        case 's':
+                            puts_keyboard(*((int8_t **)esp));
+                            esp++;
+                            break;
+
+                        default:
+                            break;
+                    }
+
+                }
+                break;
+
+            default:
+                putc_keyboard(*buf);
+                break;
+        }
+        buf++;
+    }
+    return (buf - format);
 }
 
 /* Standard printf().
@@ -177,21 +390,102 @@ int32_t puts(int8_t* s) {
 }
 
 /* void putc(uint8_t c);
- * Inputs: uint_8* c = character to print
+ * Inputs: uint_8* c = character to print in current pit terminal
+ * Return Value: void
+ *  Function: Output a character to the terminal buffer */
+void putc(uint8_t c) 
+{
+    int terminal = pit_curr_terminal;
+    if(c == '\n' || c == '\r') {
+        //increment y position
+        terminals[terminal].screen_y++;
+        
+        //Scrolling Condition
+        if(terminals[terminal].screen_y >= (NUM_ROWS))
+        {
+            scrolling(video_mem);
+            terminals[terminal].screen_y -= 1;
+        }
+        terminals[terminal].screen_x = 0;
+    } 
+    else 
+    {
+        //setting char in text mode
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[terminal].screen_y + terminals[terminal].screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem + ((NUM_COLS * terminals[terminal].screen_y + terminals[terminal].screen_x) << 1) + 1) = ATTRIB;
+        terminals[terminal].screen_x ++;
+
+        //2nd Scrolling Condition 
+        if(terminals[terminal].screen_x >= NUM_COLS && terminals[terminal].screen_y >= (NUM_ROWS - 1))
+        {
+            scrolling(video_mem);
+            terminals[terminal].screen_x = 0;
+        }
+        else if(terminals[terminal].screen_x >= NUM_COLS)
+        {
+            //screen y value changes
+            terminals[terminal].screen_x %= NUM_COLS;
+            terminals[terminal].screen_y += 1;
+        }
+        else
+        {
+            //screen y value changes
+            terminals[terminal].screen_x %= NUM_COLS;
+            terminals[terminal].screen_y = (terminals[terminal].screen_y + (terminals[pit_curr_terminal].screen_x / NUM_COLS)) % NUM_ROWS;
+        }
+    }
+    //set cursor if putc is used on displayed terminal
+    if(terminal == cur_terminal)
+    {
+        screen_x = terminals[terminal].screen_x;
+        screen_y = terminals[terminal].screen_y;
+        set_cursor();
+    }
+}
+/* void putc_keyboard(uint8_t c);
+ * Inputs: uint_8* c = character to print onto displayed terminal
  * Return Value: void
  *  Function: Output a character to the console */
-void putc(uint8_t c) {
+void putc_keyboard(uint8_t c) {
     if(c == '\n' || c == '\r') {
+        //increment y position
         screen_y++;
-        if(screen_y >= NUM_ROWS) screen_y = 0;
+        //Scrolling Condition
+        if(screen_y >= (NUM_ROWS))
+        {
+            scrolling(video_mem_keyboard);
+            screen_y -= 1;
+        }
         screen_x = 0;
     } else {
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
-        *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        *(uint8_t *)(video_mem_keyboard + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+        *(uint8_t *)(video_mem_keyboard + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+
+        //2nd Scrolling Condition
+        if(screen_x >= NUM_COLS && screen_y >= (NUM_ROWS - 1))
+        {
+            scrolling(video_mem_keyboard);
+            screen_x = 0;
+        }
+        else if(screen_x >= NUM_COLS)
+        {
+            //screen y value changes
+            screen_x %= NUM_COLS;
+            screen_y += 1;
+        }
+        else
+        {
+            //screen y value changes
+            screen_x %= NUM_COLS;
+            screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        }
     }
+    //update screen x and screen y values to current terminal state
+    terminals[cur_terminal].screen_x = screen_x;
+    terminals[cur_terminal].screen_y = screen_y;
+    //change cursor pos each time something is written through keyboard
+    set_cursor();
 }
 
 /* int8_t* itoa(uint32_t value, int8_t* buf, int32_t radix);
